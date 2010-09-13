@@ -74,6 +74,7 @@ public class EngineManager {
         SYNCME_ENGINE,
         UNDEFINED
         // add ids as we progress
+        
 
     }
 
@@ -145,7 +146,7 @@ public class EngineManager {
      * @see ContentEngine
      */
     private ContentEngine mContentEngine;
-
+    
     /**
      * Maximum time the run function for an engine is allowed to run before a
      * warning message will be displayed (debug only)
@@ -173,7 +174,79 @@ public class EngineManager {
         sEngineManager = new EngineManager(service, uiCallback);
         sEngineManager.onCreate();
     }
-
+    
+    /**
+     * (Used only by JUnit)
+     * Create instance of EngineManager.
+     * 
+     * @param service {@link RemoteService} reference
+     * @param uiCallback Provides useful engine callback functionality.
+     */
+    public static EngineManager createEngineManagerForTest(RemoteService service, IEngineEventCallback uiCallback) {
+        sEngineManager = new EngineManager(service, uiCallback);
+        return sEngineManager;
+    }
+    
+    /**
+     * (Used only by JUnit)
+     * Add a new engine to the EngineManager.
+     * 
+     * @param newEngine Engine to be added.
+     */
+    public void addEngineForTest(BaseEngine newEngine){
+    	
+    	final String newName = newEngine.getClass().getSimpleName();
+        String[] deactivatedEngines = SettingsManager
+                .getStringArrayProperty(Settings.DEACTIVATE_ENGINE_LIST_KEY);
+        for (String engineName : deactivatedEngines) {
+            if (engineName.equals(newName)) {
+                LogUtils.logW("DEACTIVATE ENGINE:  " + engineName);
+                newEngine.deactivateEngine();
+            }
+        }
+        if (!newEngine.isDeactivated()) {
+            newEngine.onCreate();
+            mEngineList.put(newEngine.mEngineId.ordinal(), newEngine);
+            
+            switch(newEngine.engineId()){
+            
+            case ACTIVITIES_ENGINE:{
+            	mActivitiesEngine = (ActivitiesEngine) newEngine;
+            	break;
+            }
+            case LOGIN_ENGINE:{
+            	mLoginEngine = (LoginEngine) newEngine;
+            	break;
+            }
+            case IDENTITIES_ENGINE:{
+            	mIdentityEngine = (IdentityEngine) newEngine;
+            	break;
+            }
+            case CONTACT_SYNC_ENGINE:{
+            	mContactSyncEngine = (ContactSyncEngine) newEngine;
+            	break;
+            }
+            case PRESENCE_ENGINE:{
+            	mPresenceEngine  = (PresenceEngine) newEngine;
+            	break;
+            }
+            
+            case SYNCME_ENGINE:{
+            	mSyncMeEngine = (SyncMeEngine) newEngine;
+            	break;
+            }
+            
+            case CONTENT_ENGINE:{
+            	mContentEngine = (ContentEngine) newEngine;
+            	break;
+            }
+            
+            default:
+            	break;
+            }
+        }
+    
+    }
     /**
      * Destroy EngineManager.
      */
