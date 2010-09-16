@@ -81,7 +81,7 @@ public class NetworkAgent {
 
     private boolean mDataRoaming;
 
-    private boolean mBackgroundData;
+    private boolean mIsBackgroundDataAllowed;
 
     private boolean mIsRoaming;
 
@@ -248,7 +248,7 @@ public class NetworkAgent {
             mWifiNetworkAvailable = (info.getType() == TYPE_WIFI);
             mIsRoaming = info.isRoaming();
         }
-        mBackgroundData = mConnectivityManager.getBackgroundDataSetting();
+        mIsBackgroundDataAllowed = mConnectivityManager.getBackgroundDataSetting();
         onConnectionStateChanged();
     }
 
@@ -280,11 +280,10 @@ public class NetworkAgent {
      */
     private final BroadcastReceiver mBackgroundDataBroadcastReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
-            LogUtils
-                    .logV("NetworkAgent.broadcastReceiver.onReceive() ACTION_BACKGROUND_DATA_SETTING_CHANGED");
+            LogUtils.logE("NetworkAgent.broadcastReceiver.onReceive() ACTION_BACKGROUND_DATA_SETTING_CHANGED");
             synchronized (NetworkAgent.this) {
                 if (mConnectivityManager != null) {
-                    mBackgroundData = mConnectivityManager.getBackgroundDataSetting();
+                    mIsBackgroundDataAllowed = mConnectivityManager.getBackgroundDataSetting();
                     onConnectionStateChanged();
                 }
             }
@@ -474,6 +473,13 @@ public class NetworkAgent {
      * access
      */
     private void onConnectionStateChanged() {
+        if (!mIsBackgroundDataAllowed) {
+            LogUtils.logW("NetworkAgent.onConnectionStateChanged() Background connection not allowed!");
+            mDisconnectReason = AgentDisconnectReason.BACKGROUND_CONNECTION_DISABLED;
+            setNewState(AgentState.DISCONNECTED);
+            return;
+        }
+    	
         if (!mInternetConnected) {
             LogUtils.logV("NetworkAgent.onConnectionStateChanged() No internet connection");
             mDisconnectReason = AgentDisconnectReason.NO_INTERNET_CONNECTION;
@@ -513,13 +519,6 @@ public class NetworkAgent {
             LogUtils.logV("NetworkAgent.onConnectionStateChanged() "
                     + "Connect while roaming not allowed");
             mDisconnectReason = AgentDisconnectReason.DATA_ROAMING_DISABLED;
-            setNewState(AgentState.DISCONNECTED);
-            return;
-        }
-        if (mIsInBackground && !mBackgroundData) {
-            LogUtils
-                    .logV("NetworkAgent.onConnectionStateChanged() Background connection not allowed");
-            mDisconnectReason = AgentDisconnectReason.BACKGROUND_CONNECTION_DISABLED;
             setNewState(AgentState.DISCONNECTED);
             return;
         }
@@ -637,7 +636,7 @@ public class NetworkAgent {
         if (changes[StatesOfService.IS_INBACKGROUND.ordinal()])
             mIsInBackground = state.isInBackGround();
         if (changes[StatesOfService.IS_BG_CONNECTION_ALLOWED.ordinal()])
-            mBackgroundData = state.isBackDataAllowed();
+            mIsBackgroundDataAllowed = state.isBackDataAllowed();
         if (changes[StatesOfService.IS_WIFI_ACTIVE.ordinal()])
             mWifiNetworkAvailable = state.isWifiActive();
         if (changes[StatesOfService.IS_ROAMING.ordinal()]) {// special case for
@@ -659,7 +658,7 @@ public class NetworkAgent {
         state.setRoaming(mIsRoaming);
         state.setRoamingAllowed(mDataRoaming);
 
-        state.setBackgroundDataAllowed(mBackgroundData);
+        state.setBackgroundDataAllowed(mIsBackgroundDataAllowed);
         state.setInBackGround(mIsInBackground);
 
         state.setInternetConnected(mInternetConnected);
