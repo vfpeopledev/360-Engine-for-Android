@@ -303,6 +303,14 @@ public class IPeopleServiceImpl implements IPeopleService, IEngineEventCallback 
         EngineManager.getInstance().getActivitiesEngine().addStatusesSyncRequest();
     }
 
+    /**
+     * @see com.vodafone360.people.service.interfaces.IPeopleService#getNetworkAgent()
+     */
+    @Override
+    public NetworkAgent getNetworkAgent() {
+    	return mNetworkAgent;
+    }
+    
     /***
      * @see com.vodafone360.people.service.interfaces.IPeopleService#getNetworkAgentState()
      */

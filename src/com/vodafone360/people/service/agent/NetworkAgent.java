@@ -107,6 +107,7 @@ public class NetworkAgent {
     private boolean mWifiNetworkAvailable;
     private boolean mMobileNetworkAvailable;
 
+    
     /**
      * Reasons for Service Agent changing state to disconnected
      */
@@ -687,4 +688,15 @@ public class NetworkAgent {
         mAgentState = newState;
     }
 
+    @Override
+    public String toString() {
+		StringBuilder str = new StringBuilder();
+		str.append("Is Roaming: "); str.append(mIsRoaming);
+		str.append("\nData Roaming: "); str.append(mDataRoaming);
+		str.append("\nNetwork Working: "); str.append(mNetworkWorking);
+		str.append("\nBG Data: "); str.append(mBackgroundData);
+		str.append("\nINet Connected: "); str.append(mInternetConnected);
+    	
+		return str.toString();
+    }
 }

@@ -37,6 +37,7 @@ import com.vodafone360.people.datatypes.RegistrationDetails;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.PersistSettings.InternetAvail;
+import com.vodafone360.people.service.agent.NetworkAgent;
 import com.vodafone360.people.service.agent.NetworkAgentState;
 
 /***
@@ -248,6 +249,11 @@ public interface IPeopleService {
      */
     void startStatusesSync();
 
+    /**
+     * Returns the network agent.
+     */
+    NetworkAgent getNetworkAgent();
+    
     /***
      * Returns the current state of the Network Agent. Used for testing only.
      */
