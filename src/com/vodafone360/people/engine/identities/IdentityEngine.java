@@ -280,11 +280,38 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * 
      * Takes all third party identities that have a chat capability set to true.
      * 
-     * @return A list of chattable 3rd party identities the user is signed in to. If the retrieval identities failed the returned list will be empty.
+     * @return A list of chattable 3rd party identities the user is signed in to. If the retrieval 
+     * identities failed the returned list will be empty.
      * 
      */
     public ArrayList<Identity> getMyChattableIdentities() {
-    	final ArrayList<Identity> chattableIdentities = new ArrayList<Identity>();
+    	return getMyIdentitesForCapability(IdentityCapability.CapabilityID.chat);
+    }
+    
+    /**
+     * 
+     * Takes all third party identities that have a post status capability set to true.
+     * 
+     * @return A list of postable status 3rd party identities the user is signed in to. If the 
+     * retrieval identities failed the returned list will be empty.
+     * 
+     */
+    public ArrayList<Identity> getMyPostableStatusIdentities() {
+    	return getMyIdentitesForCapability(IdentityCapability.CapabilityID.post_own_status);
+    }
+    
+    /**
+     * 
+     * Returns a list of all identities that the user is signed into which have the passed 
+     * capability.
+     * 
+     * @param capa The capability to find the identities for. E.g. chat or post_own_status.
+     * 
+     * @return A list of all identities that have the given capability.
+     * 
+     */
+    private ArrayList<Identity> getMyIdentitesForCapability(IdentityCapability.CapabilityID capa) {
+    	final ArrayList<Identity> capableIdentities = new ArrayList<Identity>();
     	final ArrayList<Identity> myIdentityList;
     	final int identityListSize;
         
@@ -295,17 +322,16 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     	
     	identityListSize = myIdentityList.size(); 
     	
-    	// checking each identity for its chat capability and adding it to the
-    	// list if it does
+    	// checking each identity for its "capa" capability and adding it to the list if it does
     	for (int i = 0; i < identityListSize; i++) {
     		Identity identity = myIdentityList.get(i);
     		List<IdentityCapability> capabilities = identity.mCapabilities;
     		
     		if (null == capabilities) {
-    			continue;	// if the capabilties are null skip to next identity
+    			continue;	// if the capabilities are null skip to next identity
     		}
     		
-    		// run through capabilties and check for chat
+    		// run through capabilities and check for the passed argument "capa"
     		for (int j = 0; j < capabilities.size(); j++) {
     			IdentityCapability capability = capabilities.get(j);
     			
@@ -313,17 +339,16 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     				continue;	// skip null capabilities
     			}
     			
-    			if ((capability.mCapability == IdentityCapability.CapabilityID.chat) &&
+    			if ((capability.mCapability == capa) &&
     					(capability.mValue)) {
-    				chattableIdentities.add(identity);
+    				capableIdentities.add(identity);
     				break;
     			}
     		}
     	}
     	
-    	return chattableIdentities;
+    	return capableIdentities;
     }
-    
     
     /**
      * Sends a get my identities request to the server which will be handled

@@ -38,6 +38,7 @@ import com.vodafone360.people.MainApplication;
 import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.PushEvent;
+import com.vodafone360.people.datatypes.SelectiveStatusUpdate;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.engine.meprofile.SyncMeDbUtils;
 import com.vodafone360.people.engine.meprofile.SyncMeEngine;
@@ -162,9 +163,10 @@ public class SyncMeEngineTest extends InstrumentationTestCase implements  IEngin
         // re-test with valid Me profile
         Contact meProfile = mTestModule.createDummyContactData();
         assertEquals("Could not access db", ServiceStatus.SUCCESS, SyncMeDbUtils.setMeProfile(mApplication.getDatabase(),meProfile));
-        
 
-        mEngine.addUpdateMyStatusRequest("YELLO");
+        List<String> networks = new ArrayList<String>();
+        networks.add("facebook.com");
+        mEngine.addUpdateMyStatusRequest(new SelectiveStatusUpdate("YELLO", networks));
         assertEquals("Expected SUCCESS, not timeout", ServiceStatus.SUCCESS, mEngineTester.waitForEvent());
 
         Object data = mEngineTester.data();

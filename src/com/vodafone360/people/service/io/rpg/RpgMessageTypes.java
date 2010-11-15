@@ -55,6 +55,8 @@ public class RpgMessageTypes {
 
     public static final int RPG_PRESENCE_RESPONSE = 12;
 
+    public static final int RPG_GENERIC_FUNCTION = 12;
+    
     public static final int RPG_TCP_HEARTBEAT = 100;
 
     public static final int RPG_TCP_CONNECTION_TEST = 101;

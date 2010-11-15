@@ -40,6 +40,7 @@ import com.vodafone360.people.database.tables.ContactChangeLogTable.ContactChang
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactChanges;
 import com.vodafone360.people.datatypes.ContactDetail;
+import com.vodafone360.people.datatypes.SelectiveStatusUpdate;
 import com.vodafone360.people.datatypes.UserProfile;
 import com.vodafone360.people.datatypes.ContactDetail.DetailKeys;
 import com.vodafone360.people.engine.presence.PresenceDbUtils;
@@ -329,17 +330,26 @@ public class SyncMeDbUtils {
     /**
      * The utility method to save the status text change to the database...
      * @param dbHelper DatabaseHelper - database
-     * @param statusText String - status text
+     * @param statusUpdate A status update object containing the status text and the networks to 
+     * post to.
      * @return ContactDetail - the modified or created ContactDetail with key
      *         ContactDetail.DetailKeys.PRESENCE_TEXT
      */
-    public static ContactDetail updateStatus(final DatabaseHelper dbHelper, final String statusText) {
+    public static ContactDetail updateStatus(final DatabaseHelper dbHelper, 
+    		final SelectiveStatusUpdate statusUpdate) {
+    	if (statusUpdate == null) {
+    		return null;
+    	}
+    	
+    	// maybe use status update object in the future to also store the destination networks for
+    	// the UI.
+    	
         Contact meContact = new Contact();
         if (fetchMeProfile(dbHelper, meContact) == ServiceStatus.SUCCESS) {
             // try to modify an existing detail
             for (ContactDetail detail : meContact.details) {
                 if (detail.key == ContactDetail.DetailKeys.PRESENCE_TEXT) {
-                    detail.value = statusText;
+                    detail.value = statusUpdate.getStatusText();
                     // Currently it's only possible to post a status on
                     // Vodafone sns
                     detail.alt = ThirdPartyAccount.SNS_TYPE_VODAFONE;
@@ -350,7 +360,8 @@ public class SyncMeDbUtils {
             }
             // create a new detail instead
             ContactDetail contactDetail = new ContactDetail();
-            contactDetail.setValue(statusText, ContactDetail.DetailKeys.PRESENCE_TEXT, null);
+            contactDetail.setValue(statusUpdate.getStatusText(), 
+            		ContactDetail.DetailKeys.PRESENCE_TEXT, null);
             contactDetail.alt = ThirdPartyAccount.SNS_TYPE_VODAFONE;
             contactDetail.localContactID = meContact.localContactID;
             if (ServiceStatus.SUCCESS == dbHelper.addContactDetail(contactDetail)) {

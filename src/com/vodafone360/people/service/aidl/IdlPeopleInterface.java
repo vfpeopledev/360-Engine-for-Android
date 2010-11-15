@@ -53,6 +53,7 @@ import com.vodafone360.people.engine.presence.User;
 import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.PersistSettings;
 import com.vodafone360.people.service.RemoteService;
+import com.vodafone360.people.datatypes.SelectiveStatusUpdate;
 import com.vodafone360.people.service.PersistSettings.InternetAvail;
 import com.vodafone360.people.service.agent.NetworkAgentState;
 import com.vodafone360.people.service.interfaces.IPeopleService;
@@ -761,8 +762,8 @@ public class IdlPeopleInterface extends Service {
          * @see com.vodafone360.people.service.interfaces.uploadMyStatus()
          */
         @Override
-        public final void uploadMyStatus(final String statusText) {
-            mPeopleService.uploadMyStatus(statusText);
+        public final void uploadMyStatus(SelectiveStatusUpdate statusUpdate) {
+            mPeopleService.uploadMyStatus(statusUpdate);
         }
 
         /**

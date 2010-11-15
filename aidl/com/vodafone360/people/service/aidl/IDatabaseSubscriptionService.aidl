@@ -33,6 +33,7 @@ import com.vodafone360.people.datatypes.RegistrationDetails;
 import com.vodafone360.people.engine.presence.User;
 import com.vodafone360.people.engine.presence.NetworkPresence;
 import com.vodafone360.people.datatypes.RegistrationDetails;
+import com.vodafone360.people.datatypes.SelectiveStatusUpdate;
 
 
 interface IDatabaseSubscriptionService {
@@ -75,7 +76,7 @@ interface IDatabaseSubscriptionService {
 	void startStatusesSync();
 	void updateChatNotification(long localContactId);
 	void uploadMeProfile();
-	void uploadMyStatus(in String statusText);
+	void uploadMyStatus(in SelectiveStatusUpdate statusUpdate);
 	void validateIdentityCredentials(boolean dryRun, String network, String username,
                 String password,in Bundle identityCapabilityStatus);
 

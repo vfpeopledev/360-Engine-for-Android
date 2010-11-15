@@ -34,6 +34,7 @@ import com.vodafone360.people.ApplicationCache;
 import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.LoginDetails;
 import com.vodafone360.people.datatypes.RegistrationDetails;
+import com.vodafone360.people.datatypes.SelectiveStatusUpdate;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
@@ -203,9 +204,6 @@ public final class FrameworkUtils {
             public void uploadMeProfile() {
             }
             @Override
-            public void uploadMyStatus(final String statusText) {
-            }
-            @Override
             public void validateIdentityCredentials(final boolean dryRun,
                     final String network, final String username,
                     final String password,
@@ -236,6 +234,11 @@ public final class FrameworkUtils {
             public boolean isSettingStatusOnNetworkInProgress(String network) {
                 return false;
             }
+			@Override
+			public void uploadMyStatus(SelectiveStatusUpdate statusUpdate) {
+				// TODO Auto-generated method stub
+				
+			}
         };
     }
 

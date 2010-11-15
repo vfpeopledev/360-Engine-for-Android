@@ -83,7 +83,8 @@ public class Request {
         EXTERNAL_RPG_RESPONSE,
         GET_MY_IDENTITIES,
         GET_AVAILABLE_IDENTITIES,
-        DELETE_IDENTITY
+        DELETE_IDENTITY,
+        GENERIC_RPG_FUNCTION
         // response to external RPG request
     }
 
@@ -507,6 +508,8 @@ public class Request {
             requestType = RpgMessageTypes.RPG_SEND_IM;
         } else if (mType == Request.Type.EXTERNAL_RPG_RESPONSE) {
             requestType = RpgMessageTypes.RPG_EXT_REQ;
+        } else if (mType == Request.Type.GENERIC_RPG_FUNCTION) {
+        	requestType = RpgMessageTypes.RPG_GENERIC_FUNCTION;
         } else {
             requestType = RpgMessageTypes.RPG_INT_REQ;
         }

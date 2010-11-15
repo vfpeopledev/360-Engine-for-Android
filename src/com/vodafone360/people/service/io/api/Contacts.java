@@ -25,12 +25,14 @@
 
 package com.vodafone360.people.service.io.api;
 
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactDetail;
+import com.vodafone360.people.datatypes.SelectiveStatusUpdate;
 import com.vodafone360.people.engine.BaseEngine;
 import com.vodafone360.people.engine.login.LoginEngine;
 import com.vodafone360.people.service.io.QueueManager;
@@ -55,6 +57,18 @@ public class Contacts {
     private final static String FUNCTION_GET_MY_CHANGES = "contacts/getmychanges";
 
     private final static String FUNCTION_SET_ME = "contacts/setme";
+
+    private static final String FUNCTION_SET_STATUS = "set_status";
+    
+	private static final String FUNCTION_EMPTY = "";
+
+	private static final String STR_FUNCTION = "function";
+
+	private static final String STR_STATUS = "status";
+
+	private static final String STR_NETWORKS = "networks";
+
+	private static final String STR_ARGS = "args";
 
     /**
      * Implementation of contacts/deletecontactdetails API. Parameters are;
@@ -282,5 +296,37 @@ public class Contacts {
         int requestId = queue.addRequest(request);
         queue.fireQueueStateChanged();
         return requestId;
+    }
+    
+    /**
+     * 
+     * Creates a request object and adds it to the queue for setting the selective status directly
+     * on the RPG.
+     * 
+     * @param engine The engine ID that potential responses are sent back to. Not needed here
+     * as this is a fire and forget request.
+     * @param statusUpdate The selective status update containing the status text and the networks
+     * to post to.
+     * 
+     * @return The unique request ID for this request.
+     * 
+     */
+    public static int setSelectiveStatus(final BaseEngine engine, 
+    		final SelectiveStatusUpdate statusUpdate) {
+    	final String status = statusUpdate.getStatusText();
+    	final List<String> networks = statusUpdate.getNetworks();
+    	
+    	Request request = new Request(FUNCTION_EMPTY, Request.Type.GENERIC_RPG_FUNCTION,
+    			engine.engineId(), true, Settings.API_REQUESTS_TIMEOUT_CONTACTS);
+    	
+    	Hashtable<String, Object> argsMap = new Hashtable<String, Object>();
+    	argsMap.put(STR_STATUS, status);
+    	argsMap.put(STR_NETWORKS, networks);
+    	
+    	request.addData(STR_FUNCTION, FUNCTION_SET_STATUS);
+    	request.addData(STR_ARGS, argsMap);
+    	
+    	QueueManager queue = QueueManager.getInstance();
+    	return queue.addRequest(request);
     }
 }

@@ -140,5 +140,8 @@ abstract public class BaseDataType {
      * Identity Removal Data type.
      */
     public static final int IDENTITY_DELETION_DATA_TYPE = 25;
-
+    /**
+     * Selective status update type.
+     */
+    public static final int SELECTIVE_STATUS_UPDATE_TYPE = 26;
 }

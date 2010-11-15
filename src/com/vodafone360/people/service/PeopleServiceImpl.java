@@ -37,6 +37,7 @@ import com.vodafone360.people.MainApplication;
 import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.LoginDetails;
 import com.vodafone360.people.datatypes.RegistrationDetails;
+import com.vodafone360.people.datatypes.SelectiveStatusUpdate;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.IEngineEventCallback;
@@ -403,8 +404,8 @@ public class PeopleServiceImpl implements IPeopleService, IEngineEventCallback {
     }
 
     @Override
-    public void uploadMyStatus(String statusText) {
-        EngineManager.getInstance().getSyncMeEngine().addUpdateMyStatusRequest(statusText);
+    public void uploadMyStatus(SelectiveStatusUpdate statusUpdate) {
+        EngineManager.getInstance().getSyncMeEngine().addUpdateMyStatusRequest(statusUpdate);
     }
 
     @Override

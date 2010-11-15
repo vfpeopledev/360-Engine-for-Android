@@ -41,12 +41,14 @@ import com.vodafone360.people.datatypes.ContactChanges;
 import com.vodafone360.people.datatypes.ContactDetail;
 import com.vodafone360.people.datatypes.ExternalResponseObject;
 import com.vodafone360.people.datatypes.PushEvent;
+import com.vodafone360.people.datatypes.SelectiveStatusUpdate;
 import com.vodafone360.people.datatypes.SystemNotification;
 import com.vodafone360.people.datatypes.UserProfile;
 import com.vodafone360.people.engine.BaseEngine;
 import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.engine.EngineManager.EngineId;
+import com.vodafone360.people.engine.identities.IdentityEngine;
 import com.vodafone360.people.service.PersistSettings;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
@@ -55,6 +57,7 @@ import com.vodafone360.people.service.io.QueueManager;
 import com.vodafone360.people.service.io.Request;
 import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.io.api.Contacts;
+import com.vodafone360.people.service.transport.ConnectionManager;
 import com.vodafone360.people.utils.LogUtils;
 import com.vodafone360.people.utils.ThumbnailUtils;
 import com.vodafone360.people.utils.WidgetUtils;
@@ -219,7 +222,13 @@ public class SyncMeEngine extends BaseEngine {
                 getMeProfileChanges();
                 break;
             case UPLOAD_ME_STATUS:
-                uploadStatusUpdate(SyncMeDbUtils.updateStatus(mDbHelper, (String)data));
+            	SelectiveStatusUpdate statusUpdate = (SelectiveStatusUpdate) data;
+            	if (statusUpdate == null) {
+            		break;
+            	}
+            	
+            	SyncMeDbUtils.updateStatus(mDbHelper, statusUpdate);
+                uploadStatusUpdate(statusUpdate);
                 break;
             default:
                 // do nothing.
@@ -255,26 +264,26 @@ public class SyncMeEngine extends BaseEngine {
 
     /**
      * Starts uploading a status update to the server and ignores all other
-     * @param statusDetail - status ContactDetail
+     * @param statusUpdate The status update object that contains the status text and the networks
+     * to send to.
      */
-    private void uploadStatusUpdate(final ContactDetail statusDetail) {
+    private void uploadStatusUpdate(final SelectiveStatusUpdate statusUpdate) {
         LogUtils.logE("SyncMeProfile uploadStatusUpdate()");
-
+        
         if (NetworkAgent.getAgentState() != NetworkAgent.AgentState.CONNECTED) {
             LogUtils.logE("SyncMeProfile uploadStatusUpdate: no internet connection");
             return;
         }
-        if (statusDetail == null) {
+        if (statusUpdate == null) {
             LogUtils.logE("SyncMeProfile uploadStatusUpdate: null status can't be posted");
             return;
         }
 
         newState(State.UPDATING_ME_PRESENCE_TEXT);
-        List<ContactDetail> details = new ArrayList<ContactDetail>();
-        statusDetail.updated = null;
-        details.add(statusDetail);
+        Contacts.setSelectiveStatus(this, statusUpdate);
 
-        setReqId(Contacts.setMe(this, details, null, null));
+        // TODO SyncMeDbUtils.savePresenceStatusResponse()
+        completeUiRequest(ServiceStatus.SUCCESS);
     }
 
     /**
@@ -599,14 +608,16 @@ public class SyncMeEngine extends BaseEngine {
     }
 
     /**
-     * This method adds an external request to Contacts/setMe() method to update
+     * This method adds an external request to RPG-setStatus method to update
      * the Me Profile status...
      * @param textStatus String - the new me profile status to be pushed to the
      *            server
+     * @param networks The networks that have a post_own_status capability which the user
+     * wants to update his status on. E.g. facebook.com
      */
-    public void addUpdateMyStatusRequest(String textStatus) {
+    public void addUpdateMyStatusRequest(SelectiveStatusUpdate statusUpdate) {
         LogUtils.logV("SyncMeEngine addUpdateMyStatusRequest()");
-        addUiRequestToQueue(ServiceUiRequest.UPLOAD_ME_STATUS, textStatus);
+        addUiRequestToQueue(ServiceUiRequest.UPLOAD_ME_STATUS, statusUpdate);
     }
 
     /**

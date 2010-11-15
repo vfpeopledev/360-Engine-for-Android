@@ -33,6 +33,7 @@ import android.os.Handler;
 import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.LoginDetails;
 import com.vodafone360.people.datatypes.RegistrationDetails;
+import com.vodafone360.people.datatypes.SelectiveStatusUpdate;
 import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.PersistSettings.InternetAvail;
@@ -336,9 +337,10 @@ public interface IPeopleService {
     /**
      * This method triggers the Me Profile status text upload
      * 
-     * @param statusText String - new Me Profile status text
+     * @param statusUpdate The status update object containing the status text and the networks to
+     * set it for.
      */
-    void uploadMyStatus(String statusText);
+    void uploadMyStatus(SelectiveStatusUpdate statusUpdate);
 
     /**
      * This method triggers the Me Profile download, is currently called by UI
