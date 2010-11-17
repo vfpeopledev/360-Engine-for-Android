@@ -688,7 +688,7 @@ public abstract class StateTable {
                     + "]");
             return setting;
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             LogUtils.logE("StateTable.fetchOption() SQLException - Unable to "
                     + "fetch options from database", e);
             return null;
@@ -781,7 +781,7 @@ public abstract class StateTable {
                     + "Fetched session[" + session.sessionID + "]");
             return session;
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
             LogUtils.logE("StateTable.fetchSession() SQLException - "
                     + "Unable to fetch session from database", e);
             return null;
@@ -857,7 +857,7 @@ public abstract class StateTable {
                     + "Return[" + mValue + "]");
             return mValue;
 
-        } catch (SQLiteException e) {
+        } catch (Exception e) {
             LogUtils.logE(
                     "StateTable.fetchMeProfileId() Exception - "
                     + "Unable to fetch my contact ID", e);
