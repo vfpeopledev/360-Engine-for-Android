@@ -122,8 +122,9 @@ public class SyncMeDbUtils {
      * @return Long - Me Profile localContactId.
      */
     public static Long getMeProfileLocalContactId(DatabaseHelper dbHelper) {
-        if (dbHelper == null)
-            return null;
+        if (dbHelper == null) {
+            return sMeProfileLocalContactId;
+        }
         if (sMeProfileLocalContactId == null) {
             sMeProfileLocalContactId = StateTable.fetchMeProfileId(dbHelper.getReadableDatabase());
         }

@@ -607,9 +607,9 @@ public class Contact extends BaseDataType implements Parcelable, Persistable {
     }
 
     /**
-     * Fetches the preffered ContactDetail for this Contact for example the
-     * preffered phone number or email address If no such is found, an
-     * unpreffered contact will be taken
+     * Fetches the preferred ContactDetail for this Contact for example the
+     * preferred phone number or email address. If no such is found, an
+     * unpreferred contact will be taken
      * 
      * @param detailKey The type of the Detail (PHONE, EMAIL_ADDRESS)
      * @return preffered ContactDetail, any ContactDetail if no preferred is
@@ -641,11 +641,11 @@ public class Contact extends BaseDataType implements Parcelable, Persistable {
 
     
     /**
-     * Fetches the preffered ContactDetail for this Contact and a DetailKey for
-     * example the preffered phone number or email address
+     * Fetches the preferred ContactDetail for this Contact and a DetailKey for
+     * example the preferred phone number or email address
      * 
      * @param detailKey The type of the Detail (PHONE, EMAIL_ADDRESS)
-     * @return preffered ContactDetail or null if no such is found
+     * @return preferred ContactDetail or null if no such is found
      */
     private ContactDetail getPrefferedContactDetail(ContactDetail.DetailKeys detailKey) {
         for (ContactDetail detail : details) {

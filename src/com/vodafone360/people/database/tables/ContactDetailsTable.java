@@ -552,15 +552,12 @@ public abstract class ContactDetailsTable {
                 String.format("%d", localDetailId)
             };
             writeableDb.delete(TABLE_NAME, Field.DETAILLOCALID + "=?", mArgs);
-            DatabaseHelper.trace(true,
-                    "ContactDetailsTable.deleteDetailByDetailId() Deleted localDetailId["
+            DatabaseHelper.trace(true, "ContactDetailsTable.deleteDetailByDetailId() Deleted localDetailId["
                             + localDetailId + "]");
             return true;
 
         } catch (SQLException e) {
-            LogUtils
-                    .logE(
-                            "ContactDetailsTable.fetchDetail() SQLException - Unable to delete contact detail with localDetailId["
+            LogUtils.logE("ContactDetailsTable.fetchDetail() SQLException - Unable to delete contact detail with localDetailId["
                                     + localDetailId + "]", e);
             return false;
         }
@@ -580,15 +577,12 @@ public abstract class ContactDetailsTable {
                 String.format("%d", localContactId)
             };
             writeableDb.delete(TABLE_NAME, Field.LOCALCONTACTID + "=?", args);
-            DatabaseHelper.trace(true,
-                    "ContactDetailsTable.deleteDetailByContactId() Deleted localContactId["
+            DatabaseHelper.trace(true, "ContactDetailsTable.deleteDetailByContactId() Deleted localContactId["
                             + localContactId + "]");
             return ServiceStatus.SUCCESS;
 
         } catch (SQLException e) {
-            LogUtils
-                    .logE(
-                            "ContactDetailsTable.deleteDetailByContactId() SQLException - Unable to delete contact detail with localContactId["
+            LogUtils.logE("ContactDetailsTable.deleteDetailByContactId() SQLException - Unable to delete contact detail with localContactId["
                                     + localContactId + "]", e);
             return ServiceStatus.ERROR_DATABASE_CORRUPT;
         }
@@ -609,16 +603,14 @@ public abstract class ContactDetailsTable {
             boolean syncToNative, SQLiteDatabase writeableDb) {
         try {
             if (detail.localContactID == null) {
-                LogUtils
-                        .logE("ContactDetailsTable.addContactDetail() Unable to add contact detail - invalid parameter");
+                LogUtils.logE("ContactDetailsTable.addContactDetail() Unable to add contact detail - invalid parameter");
                 return ServiceStatus.ERROR_NOT_FOUND;
             }
             detail.localDetailID = null;
             ContentValues cv = fillUpdateData(detail, syncToServer, syncToNative);
             detail.localDetailID = writeableDb.insertOrThrow(TABLE_NAME, null, cv);
             if (detail.localDetailID < 0) {
-                LogUtils
-                        .logE("ContactDetailsTable.addContactDetail() Unable to add contact detail");
+                LogUtils.logE("ContactDetailsTable.addContactDetail() Unable to add contact detail");
                 return ServiceStatus.ERROR_DATABASE_CORRUPT;
             }
             DatabaseHelper.trace(true,
@@ -627,10 +619,7 @@ public abstract class ContactDetailsTable {
             return ServiceStatus.SUCCESS;
 
         } catch (SQLException e) {
-            LogUtils
-                    .logE(
-                            "ContactDetailsTable.addContactDetail() SQLException - Unable to add contact detail",
-                            e);
+            LogUtils.logE("ContactDetailsTable.addContactDetail() SQLException - Unable to add contact detail", e);
 
             return ServiceStatus.ERROR_DATABASE_CORRUPT;
         }
@@ -1150,7 +1139,7 @@ public abstract class ContactDetailsTable {
      * @param writableDb A writable SQLite database object
      * @return SUCCESS or a suitable error code.
      */
-    private static ServiceStatus fixPreferredDetail(long localContactId,
+    public static ServiceStatus fixPreferredDetail(long localContactId,
             ContactDetail.DetailKeys key, SQLiteDatabase writableDb) {
         DatabaseHelper.trace(false, "ContactDetailsTable.fixPreferredDetail()");
         ContactDetail altDetail = new ContactDetail();

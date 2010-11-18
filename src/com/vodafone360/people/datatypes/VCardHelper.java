@@ -29,9 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
-import com.vodafone360.people.service.transport.http.HttpConnectionThread;
 import android.text.TextUtils;
-
 import android.text.format.Time;
 import android.util.TimeFormatException;
 
@@ -390,7 +388,7 @@ public class VCardHelper {
      * @param time Time item.
      * @return String generated from supplied Time item.
      */
-    protected static String makeDate(Time time) {
+    public static String makeDate(Time time) {
         List<Item> itemList = new ArrayList<Item>();
         String dateString = null;
         try {
