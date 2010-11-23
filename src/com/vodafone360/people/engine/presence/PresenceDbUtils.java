@@ -285,6 +285,7 @@ public class PresenceDbUtils {
         boolean contactsChanged = false;
         if (PresenceTable.updateUser(
         		user, null, dbHelper.getWritableDatabase()) != PresenceTable.USER_NOTADDED) {
+            PresenceTable.getUserPresence(user, dbHelper.getReadableDatabase());
             contactsChanged = (ContactSummaryTable.updateOnlineStatus(user) == ServiceStatus.SUCCESS);
         }
         return contactsChanged;
