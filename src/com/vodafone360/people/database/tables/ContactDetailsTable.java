@@ -2028,28 +2028,37 @@ public abstract class ContactDetailsTable {
         
         int internalType = DetailKeyTypes.UNKNOWN.ordinal();
         
+        
         if ((flag & ContactChange.FLAG_HOME) == ContactChange.FLAG_HOME) {
-            
-            internalType = DetailKeyTypes.HOME.ordinal();
-            
-        } else if ((flag & ContactChange.FLAG_CELL) == ContactChange.FLAG_CELL) {
-            
-            internalType = DetailKeyTypes.CELL.ordinal();
-            
+
+            if ((flag & ContactChange.FLAG_FAX) == ContactChange.FLAG_FAX) {
+                internalType = DetailKeyTypes.HOME_FAX.ordinal();
+            } else {
+                internalType = DetailKeyTypes.HOME.ordinal();
+            }
+ 
         } else if ((flag & ContactChange.FLAG_WORK) == ContactChange.FLAG_WORK) {
-            
-            internalType = DetailKeyTypes.WORK.ordinal();
+
+            if ((flag & ContactChange.FLAG_FAX) == ContactChange.FLAG_FAX) {
+                internalType = DetailKeyTypes.WORK_FAX.ordinal();
+            } else {
+                internalType = DetailKeyTypes.WORK.ordinal();
+            }
+
+        } else if ((flag & ContactChange.FLAG_CELL) == ContactChange.FLAG_CELL) {
+
+            internalType = DetailKeyTypes.CELL.ordinal();
 
         } else if ((flag & ContactChange.FLAG_FAX) == ContactChange.FLAG_FAX) {
-            
+
             internalType = DetailKeyTypes.FAX.ordinal();
 
         } else if ((flag & ContactChange.FLAG_BIRTHDAY) == ContactChange.FLAG_BIRTHDAY) {
-            
+
             internalType = DetailKeyTypes.BIRTHDAY.ordinal();
 
         }
-        
+
         return internalType;
     }
     
@@ -2113,27 +2122,40 @@ public abstract class ContactDetailsTable {
     public static int mapInternalTypeAndOrderToContactChangeFlag(int type, int order) {
         
         int flags = ContactChange.FLAG_NONE;
-        
+
         if (order == ContactDetail.ORDER_PREFERRED) {
-            
+
             flags |= ContactChange.FLAG_PREFERRED;
         }
-        
-        if (type == ContactDetail.DetailKeyTypes.CELL.ordinal()
-         || type == ContactDetail.DetailKeyTypes.MOBILE.ordinal()) {
-            
+
+        if (type == ContactDetail.DetailKeyTypes.HOME_FAX.ordinal()) {
+
+            flags |= ContactChange.FLAGS_HOME_FAX;
+
+        } else if (type == ContactDetail.DetailKeyTypes.WORK_FAX.ordinal()) {
+
+            flags |= ContactChange.FLAGS_WORK_FAX;
+        }
+
+        else if (type == ContactDetail.DetailKeyTypes.CELL.ordinal()
+                || type == ContactDetail.DetailKeyTypes.MOBILE.ordinal()) {
+
             flags |= ContactChange.FLAG_CELL;
+
         } else if (type == ContactDetail.DetailKeyTypes.HOME.ordinal()) {
-            
+
             flags |= ContactChange.FLAG_HOME;
+
         } else if (type == ContactDetail.DetailKeyTypes.WORK.ordinal()) {
-            
+
             flags |= ContactChange.FLAG_WORK;
+
         } else if (type == ContactDetail.DetailKeyTypes.BIRTHDAY.ordinal()) {
-            
+
             flags |= ContactChange.FLAG_BIRTHDAY;
+
         } else if (type == ContactDetail.DetailKeyTypes.FAX.ordinal()) {
-            
+
             flags |= ContactChange.FLAG_FAX;
         }
 

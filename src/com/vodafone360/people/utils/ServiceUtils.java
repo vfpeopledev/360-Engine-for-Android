@@ -55,6 +55,12 @@ public class ServiceUtils {
         } else if (keyType == ContactDetail.DetailKeyTypes.CELL) {
             return res.getString(R.string.UiUtils_detail_cell);
 
+        } else if (keyType == ContactDetail.DetailKeyTypes.HOME_FAX) {
+            return res.getString(R.string.UiUtils_detail_home)+" "+res.getString(R.string.UiUtils_detail_fax);
+        }
+        else if (keyType == ContactDetail.DetailKeyTypes.WORK_FAX) {
+            return res.getString(R.string.UiUtils_detail_work)+" "+res.getString(R.string.UiUtils_detail_fax);
+
         } else if (keyType == ContactDetail.DetailKeyTypes.FAX) {
             return res.getString(R.string.UiUtils_detail_fax);
 

@@ -57,6 +57,8 @@ public class ContactDetail extends BaseDataType implements Parcelable {
     public static final String UNKNOWN_NAME = "Unknown";
 
     private static final String TYPE_PREFERRED = "preferred";
+    
+    private static final String TYPE_WORK_FAX = "work;fax";
 
     public static final int ORDER_PREFERRED = 0;
 
@@ -73,7 +75,9 @@ public class ContactDetail extends BaseDataType implements Parcelable {
         BIRTHDAY("birthday"),
         CELL("cell"),
         FAX("fax"),
-        UNKNOWN("unknown");
+        UNKNOWN("unknown"),
+        HOME_FAX("home fax"),
+        WORK_FAX("work;fax");
 
         private final String typeName;
 
@@ -527,7 +531,7 @@ public class ContactDetail extends BaseDataType implements Parcelable {
                 order = (Integer)obValue;
                 break;
             case TYPE:
-                processTypeData((String)obValue);
+                processTypeData((String)obValue);     
                 break;
             case UNIQUE_ID:
                 unique_id = (Long)obValue;
@@ -776,8 +780,10 @@ public class ContactDetail extends BaseDataType implements Parcelable {
      * @param typeData String containing type information.
      */
     private void processTypeData(String typeData) {
+        
         final int posIdx = typeData.indexOf(';');
-        if (posIdx >= 0) {
+        if (posIdx >= 0 && !typeData.equals(TYPE_WORK_FAX)) {
+
             List<String> list = new ArrayList<String>();
             VCardHelper.getStringList(list, typeData);
             for (String type : list) {
@@ -788,6 +794,7 @@ public class ContactDetail extends BaseDataType implements Parcelable {
         } else {
             processType(typeData);
         }
+
         if (keyType == null && ((String)typeData).trim().length() > 0) {
             alt = ((String)typeData);
         }

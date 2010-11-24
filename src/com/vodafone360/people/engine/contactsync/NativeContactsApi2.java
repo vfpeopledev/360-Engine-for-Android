@@ -2053,24 +2053,24 @@ public class NativeContactsApi2 extends NativeContactsApi {
      * @return Native phone type
      */
     private static int mapToNabPhoneType(int flags) {
-        if ((flags & ContactChange.FLAGS_WORK_CELL) == ContactChange.FLAGS_WORK_CELL) {
-            return Phone.TYPE_WORK_MOBILE;
-        }
-
-        if ((flags & ContactChange.FLAGS_HOME_FAX) == ContactChange.FLAGS_HOME_FAX) {
-            return Phone.TYPE_FAX_HOME;
-        }
-
-        if ((flags & ContactChange.FLAGS_WORK_FAX) == ContactChange.FLAGS_WORK_FAX) {
-            return Phone.TYPE_FAX_WORK;
-        }
-
+        
         if ((flags & ContactChange.FLAG_HOME) == ContactChange.FLAG_HOME) {
-            return Phone.TYPE_HOME;
-        }
 
-        if ((flags & ContactChange.FLAG_WORK) == ContactChange.FLAG_WORK) {
-            return Phone.TYPE_WORK;
+            if ((flags & ContactChange.FLAG_FAX) == ContactChange.FLAG_FAX) {
+                return Phone.TYPE_FAX_HOME;
+            } else {
+                return Phone.TYPE_HOME;
+            }
+
+        } else if ((flags & ContactChange.FLAG_WORK) == ContactChange.FLAG_WORK) {
+
+            if ((flags & ContactChange.FLAG_FAX) == ContactChange.FLAG_FAX) {
+                return Phone.TYPE_FAX_WORK;
+            } else if ((flags & ContactChange.FLAG_CELL) == ContactChange.FLAG_CELL) {
+                return Phone.TYPE_WORK_MOBILE;
+            } else {
+                return Phone.TYPE_WORK;
+            }
         }
 
         if ((flags & ContactChange.FLAG_CELL) == ContactChange.FLAG_CELL) {
