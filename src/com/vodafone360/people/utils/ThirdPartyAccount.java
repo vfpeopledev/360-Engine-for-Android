@@ -78,6 +78,10 @@ public class ThirdPartyAccount {
     
     public static final String SNS_TYPE_STUDIVZ = "studivz";
 
+    public static final String SNS_TYPE_PICASA = "picasa"; // Typically "picasa.com"
+
+    public static final String SNS_TYPE_FLICKR = "flickr";  // Typically "flickr.com"
+
 
     /**
      * Create a new third party account object.
