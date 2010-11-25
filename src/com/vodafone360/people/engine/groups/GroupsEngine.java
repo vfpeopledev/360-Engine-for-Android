@@ -30,7 +30,6 @@ import java.util.List;
 import android.content.Context;
 
 import com.vodafone360.people.database.DatabaseHelper;
-import com.vodafone360.people.database.tables.GroupsTable;
 import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.GroupItem;
 import com.vodafone360.people.datatypes.ItemList;
@@ -54,17 +53,16 @@ public class GroupsEngine extends BaseEngine {
      * Current page number being fetched.
      */
     private int mPageNo;
-
-    /**
-     * Total number of groups fetched from server.
-     */
-    private int mNoOfGroupsFetched;
     
     /**
-     * 
+     * The DatabaseHelper instance.
      */
     private DatabaseHelper mDb;
     
+    /**
+     * The list containing all the groups received from the backend.
+     */
+    private ArrayList<GroupItem> mReceivedGroups = new ArrayList<GroupItem>();
     
     
     public GroupsEngine(Context context, IEngineEventCallback eventCallback, DatabaseHelper db) {
@@ -94,11 +92,6 @@ public class GroupsEngine extends BaseEngine {
     }
 
     @Override
-    protected void onRequestComplete() {
-        // nothing needed
-    }
-
-    @Override
     protected void onTimeoutEvent() {
     }
 
@@ -109,7 +102,9 @@ public class GroupsEngine extends BaseEngine {
         ServiceStatus status = BaseEngine.getResponseStatus(BaseDataType.ITEM_LIST_DATA_TYPE, resp.mDataTypes);
         if (status == ServiceStatus.SUCCESS) {
         	
-            final List<GroupItem> tempGroupList = new ArrayList<GroupItem>();
+            // keep track of the number of groups received in this response
+            int responseGroupsCount = 0;
+            
             for (int i = 0; i < resp.mDataTypes.size(); i++) {
                 ItemList itemList = (ItemList)resp.mDataTypes.get(i);
                 if (itemList.mType != ItemList.Type.group_privacy) {
@@ -117,24 +112,20 @@ public class GroupsEngine extends BaseEngine {
                     return;
                 }
                 
-                // TODO: why cloning the list?
+                // Store the received Groups
                 for (int j = 0; j < itemList.mItemList.size(); j++) {
-                    tempGroupList.add((GroupItem)itemList.mItemList.get(j));
+                    mReceivedGroups.add((GroupItem)itemList.mItemList.get(j));
                 }
+                responseGroupsCount += itemList.mItemList.size();
             }
-            LogUtils.logI("DownloadGroups.processCommsResponse() - No of groups "
-                    + tempGroupList.size());
-            if (mPageNo == 0) {
-                mDb.deleteAllGroups(); // clear old groups if we request the first groups page
-            }
-            status = GroupsTable.addGroupList(tempGroupList, mDb.getWritableDatabase());
-            if (ServiceStatus.SUCCESS != status) {
+            LogUtils.logI("DownloadGroups.processCommsResponse() - Current count of received Groups "
+                    + mReceivedGroups.size());
+
+            if (responseGroupsCount < MAX_DOWN_PAGE_SIZE) {
+                
+                // we received all the Groups, let's reflect that to the database 
+                status = updateGroupsDatabase();
                 completeUiRequest(status);
-                return;
-            }
-            mNoOfGroupsFetched += tempGroupList.size();
-            if (tempGroupList.size() < MAX_DOWN_PAGE_SIZE) {
-                completeUiRequest(ServiceStatus.SUCCESS);
                 return;
             }
             mPageNo++;
@@ -143,6 +134,12 @@ public class GroupsEngine extends BaseEngine {
         }
         LogUtils.logE("DownloadGroups.processCommsResponse() - Error requesting Zyb groups, error = " + status);
         completeUiRequest(status);
+    }
+
+    @Override
+    protected void onRequestComplete() {
+
+        reset();
     }
 
     @Override
@@ -184,8 +181,8 @@ public class GroupsEngine extends BaseEngine {
      * Requests the first group page.
      */
     private void requestFirstGroupsPage() {
-        mPageNo = 0;
-        mNoOfGroupsFetched = 0;
+        
+        reset();
         requestNextGroupsPage();
     }
     
@@ -199,5 +196,98 @@ public class GroupsEngine extends BaseEngine {
         }
         int reqId = GroupPrivacy.getGroups(this, mPageNo, MAX_DOWN_PAGE_SIZE);
         setReqId(reqId);
+    }
+    
+    /**
+     * Resets the engine.
+     */
+    private void reset() {
+        
+        mPageNo = 0;
+        mReceivedGroups.clear();
+    }
+    
+    @Override
+    public void onReset() {
+        
+        reset();
+        super.onReset();
+    }
+    
+    /**
+     * Updates the database with the received groups.
+     */
+    private ServiceStatus updateGroupsDatabase() {
+        
+        // the list of groups currently in the database
+        final ArrayList<GroupItem> dbGroups = new ArrayList<GroupItem>();
+        // the list of groups to modify
+        final ArrayList<GroupItem> groupsToModifiy = new ArrayList<GroupItem>();
+        // the list of groups to remove
+        final ArrayList<GroupItem> groupsToRemove = new ArrayList<GroupItem>();
+        // status of database access
+        ServiceStatus status;
+        
+        // add client system groups to the list of received groups
+        mDb.getSystemGroups(mReceivedGroups);
+        
+        // fetch the Groups from the database
+        status = mDb.fetchGroupList(dbGroups);
+        
+        if (status != ServiceStatus.SUCCESS) {
+            return status;
+        }
+
+        // compare the list of groups in the database with the list of received groups
+        // to find out what has changed.
+        for (GroupItem groupItem : dbGroups) {
+            
+            final int index = getGroupIndex(mReceivedGroups, groupItem.mId);
+            if (index != -1) {
+                // group existing in the database
+                final GroupItem receivedGroup = mReceivedGroups.get(index);
+                if (!receivedGroup.isSameAs(groupItem)) {
+                    // this group has been modified
+                    groupsToModifiy.add(receivedGroup);
+                }
+                // remove it from the list since we're done with that one
+                // the remaining groups will be the ones to add to the database
+                mReceivedGroups.remove(index);
+            } else {
+                // not found in the received groups, need to remove it from the database
+                groupsToRemove.add(groupItem);
+            }
+        }
+        
+        /*
+         * Reflect the changes in the database:
+         * -groupsToModify => the groups to update
+         * -groupsToRemove => the groups to remove
+         * -mReceivedGroups => the groups to add
+         */ 
+        status = mDb.updateGroupsTable(mReceivedGroups, groupsToModifiy, groupsToRemove);
+
+        return status;
+    }
+    
+    /**
+     * Finds the index of a group in a list of groups.
+     * 
+     * @param groupList the list of groups where to search
+     * @param id the id of the group to find
+     * @return the zero based index of the group or -1 if not found 
+     */
+    private int getGroupIndex(List<GroupItem> groupList, long id) {
+        
+        for (int i = groupList.size() - 1; i >= 0 ; i--) {
+            
+            final GroupItem groupItem = groupList.get(i);
+            
+            if (groupItem.mId != null && groupItem.mId == id) {
+                return i;
+            }
+        }
+        
+        return -1;
     }
 }

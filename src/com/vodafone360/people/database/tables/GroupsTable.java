@@ -364,6 +364,80 @@ public abstract class GroupsTable {
 
         return ServiceStatus.SUCCESS;
     }
+    
+    /**
+     * Updates the GroupsTable with the provided groups modifications.
+     * 
+     * @param groupsToAdd the list of groups that need to be added
+     * @param groupsToUpdate the list of groups that need to be modified
+     * @param groupsToRemove the list of groups that need to be removed
+     * @param writableDb the database where to perform the update
+     * @return ServiceStatus.SUCCESS if successful or the corresponding error
+     */
+    public static ServiceStatus updateGroupsTable(List<GroupItem> groupsToAdd,
+                                                  List<GroupItem> groupsToUpdate,
+                                                  List<GroupItem> groupsToRemove,
+                                                  SQLiteDatabase writableDb) {
+        
+        // check if there is something to change in the database
+        if (groupsToAdd.size() > 0
+         || groupsToRemove.size() > 0
+         || groupsToUpdate.size() > 0) {
+            
+            try {
+                writableDb.beginTransaction();
+                
+                // remove the deleted groups
+                for (GroupItem groupItem : groupsToRemove) {
+                    
+                    if (writableDb.delete(TABLE_NAME, Field.LOCALGROUPID + "=" + groupItem.mLocalGroupId, null) <= 0) {
+                        LogUtils.logE("GroupsTable.updateGroupsTable() Unable to remove group - mName["
+                                + groupItem.mName + "]");
+                        writableDb.endTransaction();
+                        return ServiceStatus.ERROR_DATABASE_CORRUPT;
+                    }
+                }
+                
+                // add the new groups
+                for (GroupItem groupItem : groupsToAdd) {
+                    
+                    groupItem.mLocalGroupId = writableDb.insertOrThrow(TABLE_NAME,
+                                                                       null,
+                                                                       fillUpdateData(groupItem));
+                    if (groupItem.mLocalGroupId < 0) {
+                        LogUtils.logE("GroupsTable.updateGroupsTable() Unable to add group - mName["
+                                    + groupItem.mName + "]");
+                        writableDb.endTransaction();
+                        return ServiceStatus.ERROR_DATABASE_CORRUPT;
+                    }
+                }
+                
+                // update the modified groups
+                for (GroupItem groupItem : groupsToUpdate) {
+                    
+                    final long localGroupId = groupItem.mLocalGroupId;
+                    // set it to null since we don't want to update the primary key
+                    groupItem.mLocalGroupId = null;
+                    if (writableDb.update(TABLE_NAME, fillUpdateData(groupItem), Field.LOCALGROUPID + "=" + localGroupId, null) <= 0) {
+                        LogUtils.logE("GroupsTable.updateGroupsTable() Unable to update group - mName["
+                                + groupItem.mName + "]");
+                        writableDb.endTransaction();
+                        return ServiceStatus.ERROR_DATABASE_CORRUPT;
+                    }
+                }
+                
+                writableDb.setTransactionSuccessful();
+                
+            } catch (SQLException e) {
+                LogUtils.logE("GroupsTable.updateGroupsTable() SQLException - Unable to update groups", e);
+                return ServiceStatus.ERROR_DATABASE_CORRUPT;
+            } finally {
+                writableDb.endTransaction();
+            }
+        }
+        
+        return ServiceStatus.SUCCESS;
+    }
 
     /**
      * Removes all groups from the table. The
@@ -447,6 +521,20 @@ public abstract class GroupsTable {
      */
     public static ServiceStatus populateSystemGroups(Context context, SQLiteDatabase writableDb) {
         final List<GroupItem> groupList = new ArrayList<GroupItem>();
+        
+        getSystemGroups(context, groupList);
+        
+        return addGroupList(groupList, writableDb);
+    }
+    
+    /**
+     * Feeds the provided list with the System groups.
+     * 
+     * @param context the context to use for the localized strings
+     * @param groupList the list to populate with the system groups
+     */
+    public static void getSystemGroups(Context context, List<GroupItem> groupList) {
+        
         GroupItem all = new GroupItem();
         all.mName = context.getString(R.string.ContactListActivity_group_all);
         all.mIsReadOnly = true;
@@ -464,6 +552,5 @@ public abstract class GroupsTable {
         phonebook.mIsReadOnly = true;
         phonebook.mId = GROUP_PHONEBOOK;
         groupList.add(phonebook);
-        return addGroupList(groupList, writableDb);
     }
 }

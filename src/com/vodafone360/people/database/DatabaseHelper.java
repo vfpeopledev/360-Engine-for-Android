@@ -74,6 +74,7 @@ import com.vodafone360.people.datatypes.ActivityItem;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactDetail;
 import com.vodafone360.people.datatypes.ContactSummary;
+import com.vodafone360.people.datatypes.GroupItem;
 import com.vodafone360.people.datatypes.LoginDetails;
 import com.vodafone360.people.datatypes.PublicKeyDetails;
 import com.vodafone360.people.datatypes.ContactDetail.DetailKeyTypes;
@@ -696,18 +697,43 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return status;
     }
 
-    /***
-     * Removes all groups from the database.
+    /**
+     * Feeds the provided list with the System groups.
      * 
-     * @return SUCCESS or a suitable error code
+     * @param groupList the list to populate with the system groups.
      */
-    public ServiceStatus deleteAllGroups() {
-        SQLiteDatabase db = getWritableDatabase();
-        ServiceStatus status = GroupsTable.deleteAllGroups(db);
-        if (ServiceStatus.SUCCESS == status) {
-            status = GroupsTable.populateSystemGroups(mContext, db);
-        }
-        return status;
+    public void getSystemGroups(List<GroupItem> groupList) {
+        
+        GroupsTable.getSystemGroups(mContext, groupList);
+    }
+    
+    /**
+     * Updates the GroupsTable with the provided groups modifications.
+     * 
+     * @param groupsToAdd the list of groups that need to be added
+     * @param groupsToUpdate the list of groups that need to be modified
+     * @param groupsToRemove the list of groups that need to be removed
+     * @return ServiceStatus.SUCCESS if successful or the corresponding error
+     */
+    public ServiceStatus updateGroupsTable(List<GroupItem> groupsToAdd,
+                                                  List<GroupItem> groupsToUpdate,
+                                                  List<GroupItem> groupsToRemove) {
+        
+        return GroupsTable.updateGroupsTable(groupsToAdd,
+                                             groupsToUpdate,
+                                             groupsToRemove,
+                                             getWritableDatabase());
+    }
+    
+    /**
+     * Fetches a list of all the available groups.
+     * 
+     * @param groupList A list that will be populated with the result.
+     * @return SUCCESS or a suitable error
+     */
+    public ServiceStatus fetchGroupList(ArrayList<GroupItem> groupList) {
+        
+        return GroupsTable.fetchGroupList(groupList, getReadableDatabase());
     }
 
     /***

@@ -319,4 +319,55 @@ public class GroupItem extends BaseDataType implements Parcelable {
         dest.writeBooleanArray(validDataList); // Real array.
         dest.setDataPosition(currentPos);
     }
+    
+    /**
+     * Compares the this GroupItem instance with another GroupItem.
+     * 
+     * Note: This method does not perform a full comparison since it skips the mLocalGroupId value
+     *       which is the local id (primary key of the group row) in the database.
+     *
+     * @param groupItem the GroupItem to compare
+     * @return true if there are identical (skipping mLocalGroupId), false otherwise
+     */
+    public boolean isSameAs(GroupItem groupItem) {
+
+        if ((groupItem == null)
+         || !isSameAs(mId, groupItem.mId)
+         || !isSameAs(mIsReadOnly, groupItem.mIsReadOnly)
+         || !isSameAs(mIsSmartGroup, groupItem.mIsSmartGroup)
+         || !isSameAs(mIsSystemGroup, groupItem.mIsSystemGroup)
+         || !isSameAs(mRequiresLocalisation, groupItem.mRequiresLocalisation)
+         || !isSameAs(mColor, groupItem.mColor)
+         || !isSameAs(mGroupType, groupItem.mGroupType)
+         || !isSameAs(mImageBytes, groupItem.mImageBytes)
+         || !isSameAs(mImageMimeType, groupItem.mImageMimeType)
+         || !isSameAs(mName, groupItem.mName)
+         || !isSameAs(mUserId, groupItem.mUserId)) {
+            
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Compares the two provided Objects.
+     * 
+     * @param value1 the first value
+     * @param value2 the second value
+     * @return true is the provided values are identical, false otherwise
+     */
+    private boolean isSameAs(Object value1, Object value2) {
+
+        if (value1 != null && value2 != null) {
+            if (!value1.equals(value2)) {
+                return false;
+            }
+        } else if (value1 != value2) {
+            // one of them is not null
+            return false;
+        }
+        
+        return true;
+    }
 }
