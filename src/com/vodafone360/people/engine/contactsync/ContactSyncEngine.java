@@ -1632,7 +1632,8 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         LogUtils.logD("ContactSyncEngine.onChange(): changes detected on native side.");
         // changes detected on native side, start the timer for the
         // FetchNativeContacts processor.
-        startFetchNativeContactSyncTimer();
+        // commented out the line because the import now only happens at start-up.
+        // startFetchNativeContactSyncTimer();    
     }
     
     /**
