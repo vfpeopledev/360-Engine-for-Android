@@ -67,8 +67,7 @@ public class MainApplication extends Application {
         LoginPreferences.getCurrentLoginActivity(this);
         
         /** Start the Service. **/
-        // TODO:
-    //    startService(new Intent(this, RemoteService.class));
+        // startService(new Intent(this, RemoteService.class));
     }
 
     /**

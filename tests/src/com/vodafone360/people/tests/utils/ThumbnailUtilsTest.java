@@ -62,9 +62,6 @@ public class ThumbnailUtilsTest extends AndroidTestCase {
     private static final String DUMMY_IMG_PATH = FULL_PATH + "/"
         + DUMMY_IMG_NAME;
 
-    /** Maximum image compression quality. **/
-    private static final int MAX_IMAGE_QUALITY = 100;
-
     /***
      * JUnit test for the ThumbnailUtils.thumbnailPath() method.
      *

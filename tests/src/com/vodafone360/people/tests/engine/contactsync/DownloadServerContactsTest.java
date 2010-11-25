@@ -269,6 +269,7 @@ public class DownloadServerContactsTest extends InstrumentationTestCase implemen
             data.add(serverError);
         }
         respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
+        
         mEng.onCommsInMessage();
         Log.d(LOG_TAG, "reportBackToEngine - message added to response queue");
     }
@@ -515,7 +516,7 @@ public class DownloadServerContactsTest extends InstrumentationTestCase implemen
     }
 
     @SmallTest
-    @Suppress
+    
     // Breaks tests.
     public void testRunWithNoContactChanges() {
         final String fnName = "testRunWithNoContactChanges";
@@ -612,7 +613,7 @@ public class DownloadServerContactsTest extends InstrumentationTestCase implemen
     }
 
     @MediumTest
-    @Suppress
+    
     // Breaks tests.
     public void testRunWithOneModifiedContact() {
         final String fnName = "testRunWithOneModifiedContact";
@@ -709,7 +710,7 @@ public class DownloadServerContactsTest extends InstrumentationTestCase implemen
     }
 
     @MediumTest
-    @Suppress
+    
     // Breaks tests.
     public void testRunWithOneDeletedDetail() {
         final String fnName = "testRunWithOneDeletedDetail";

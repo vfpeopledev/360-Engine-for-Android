@@ -25,12 +25,8 @@
 
 package com.vodafone360.people.tests.engine.contactsync;
 
-import java.util.List;
-
-import android.accounts.Account;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.database.Cursor;
 import android.os.Build;
 
 /**

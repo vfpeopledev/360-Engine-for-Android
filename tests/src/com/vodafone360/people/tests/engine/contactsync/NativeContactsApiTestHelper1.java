@@ -25,16 +25,13 @@
 
 package com.vodafone360.people.tests.engine.contactsync;
 
-import com.vodafone360.people.tests.engine.contactsync.NativeContactsApiTestHelper.IPeopleAccountChangeObserver;
-
-import android.content.ContentResolver;
 import android.content.ContentUris;
-import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.Contacts;
 import android.provider.Contacts.People;
 
+@SuppressWarnings("deprecation")
 public class NativeContactsApiTestHelper1 extends NativeContactsApiTestHelper {
 	@Override
 	public void populateNabContacts() {

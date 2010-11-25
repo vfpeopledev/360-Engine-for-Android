@@ -458,43 +458,6 @@ public class ContactChangeHelper {
     	
     	return updatedContact.toArray(new ContactChange[updatedContact.size()]);
     }
-
-    /**
-     * Finds the last index for the specified key.
-     * This method uses recursion.
-     */
-    private static int lastIndexForKeyInCcList(int key, List<ContactChange> ccList) {
-    	if(ccList == null || ccList.size() == 0) {
-    		return -1;
-    	}
-    	
-    	final int listSize = ccList.size();
-    	for(int i = listSize - 1; i > -1; i--) {
-    		if(ccList.get(i).getKey() == key) {
-    			return i;
-    		}
-    	}
-    	
-    	// Yes, this is recursion...
-    	switch(key) {
-    		case ContactChange.KEY_VCARD_TITLE:
-    			return lastIndexForKeyInCcList(ContactChange.KEY_VCARD_ORG, ccList);
-    		case ContactChange.KEY_VCARD_ORG:
-    			return lastIndexForKeyInCcList(ContactChange.KEY_VCARD_ADDRESS, ccList);
-    		case ContactChange.KEY_VCARD_ADDRESS:
-    			return lastIndexForKeyInCcList(ContactChange.KEY_VCARD_EMAIL, ccList);
-    		case ContactChange.KEY_VCARD_EMAIL:
-    			return lastIndexForKeyInCcList(ContactChange.KEY_VCARD_PHONE, ccList);
-    		case ContactChange.KEY_VCARD_PHONE:
-    			return lastIndexForKeyInCcList(ContactChange.KEY_VCARD_NICKNAME, ccList);
-    		case ContactChange.KEY_VCARD_NICKNAME:
-    			return lastIndexForKeyInCcList(ContactChange.KEY_VCARD_NOTE, ccList);
-			case ContactChange.KEY_VCARD_NOTE:
-				return lastIndexForKeyInCcList(ContactChange.KEY_VCARD_NAME, ccList);
-    	}
-    	
-    	return -1;
-    }
     
     public static boolean isKeyPresent(int key, ContactChange[] ccList) {
     	if(ccList == null || ccList.length == 0) {
@@ -905,10 +868,6 @@ public class ContactChangeHelper {
     	return Math.abs(sRn.nextInt() % limit);
     }
     
-    private static long randomPositiveLong() {
-    	return Math.abs(sRn.nextLong());
-    }
-
     private static int rand(int lo, int hi) {
             int n = hi - lo + 1;
             int i = sRn.nextInt() % n;

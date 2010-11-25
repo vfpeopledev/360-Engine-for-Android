@@ -32,9 +32,10 @@ import java.util.List;
 import android.app.Instrumentation;
 import android.content.ContentValues;
 import android.net.Uri;
+import android.provider.CallLog.Calls;
+import android.provider.Contacts;
 import android.test.InstrumentationTestCase;
 import android.test.suitebuilder.annotation.MediumTest;
-import android.test.suitebuilder.annotation.Suppress;
 import android.util.Log;
 
 import com.vodafone360.people.MainApplication;
@@ -46,18 +47,21 @@ import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.PushEvent;
 import com.vodafone360.people.datatypes.ServerError;
 import com.vodafone360.people.datatypes.StatusMsg;
+import com.vodafone360.people.engine.EngineManager;
 import com.vodafone360.people.engine.EngineManager.EngineId;
 import com.vodafone360.people.engine.activities.ActivitiesEngine;
 import com.vodafone360.people.engine.meprofile.SyncMeDbUtils;
 import com.vodafone360.people.service.ServiceStatus;
+import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.agent.NetworkAgent;
 import com.vodafone360.people.service.io.ResponseQueue;
 import com.vodafone360.people.service.io.ResponseQueue.DecodedResponse;
 import com.vodafone360.people.service.io.rpg.PushMessageTypes;
 import com.vodafone360.people.tests.TestModule;
 
+@SuppressWarnings("deprecation")
 public class ActivitiesEngineTest extends InstrumentationTestCase implements
-        IEngineTestFrameworkObserver {
+    IEngineTestFrameworkObserver {
 
     /**
      * States for test harness
@@ -87,23 +91,68 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
 
     MainApplication mApplication = null;
 
-    TestModule mTestModule = new TestModule();
+    TestModule mTestModule;
+    
+    EngineManager mEngineManager = null;
+    
+    // The complete list from MMS Decoder
+    
+    private static final int ANY_CHARSET = 0x00;
 
+    private static final int US_ASCII = 0x03;
+
+    private static final int ISO_8859_1 = 0x04;
+
+    private static final int ISO_8859_2 = 0x05;
+
+    private static final int ISO_8859_3 = 0x06;
+
+    private static final int ISO_8859_4 = 0x07;
+
+    private static final int ISO_8859_5 = 0x08;
+
+    private static final int ISO_8859_6 = 0x09;
+
+    private static final int ISO_8859_7 = 0x0A;
+
+    private static final int ISO_8859_8 = 0x0B;
+
+    private static final int ISO_8859_9 = 0x0C;
+
+    private static final int SHIFT_JIS = 0x11;
+
+    private static final int UTF_8 = 0x6A;
+
+    private static final int BIG5 = 0x07EA;
+
+    private static final int UCS2 = 0x03E8;
+
+    private static final int UTF_16 = 0x03F7;
+    
     @Override
     protected void setUp() throws Exception {
         super.setUp();
+        mTestModule = new TestModule();
         mApplication = (MainApplication)Instrumentation.newApplication(MainApplication.class,
                 getInstrumentation().getTargetContext());
         mApplication.onCreate();
 
-        // EngineManager.createEngineManager(getInstrumentation().getTargetContext(),
-        // null);
-
+        
         mEngineTester = new EngineTestFramework(this);
+        mEngineManager = EngineManager.createEngineManagerForTest(null , mEngineTester);
         mEng = new ActivitiesEngine(getInstrumentation().getTargetContext(), mEngineTester,
                 mApplication.getDatabase());
+        mEng.setTestMode(true);
         mEngineTester.setEngine(mEng);
         mState = ActivityTestState.IDLE;
+        
+        mEngineManager.addEngineForTest(mEng);
+        
+        // This statement is just to make sure that first sync completes before starting
+        // other test cases.
+        mEng.addStatusesSyncRequest();
+        mEngineTester.waitForEvent();
+        
     }
 
     @Override
@@ -113,7 +162,10 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
         mEngineTester.stopEventThread();
         mEngineTester = null;
         mEng = null;
-
+        EngineManager.destroyEngineManager();
+        mEngineManager = null;
+        mTestModule = null;
+        
         // call at the end!!!
         super.tearDown();
     }
@@ -165,7 +217,6 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
     }
 
     @MediumTest
-    @Suppress // Takes too long.
     public void testGetActivitiesGoodNoMeProfile() {
         boolean testPass = true;
         mState = ActivityTestState.GET_ACTIVITIES_SUCCESS;
@@ -173,7 +224,12 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
         NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
         mEng.addStatusesSyncRequest();
 
-        assertEquals("Expected SUCCESS, not timeout", ServiceStatus.SUCCESS, mEngineTester.waitForEvent());
+        ServiceStatus status = mEngineTester.waitForEvent();
+        if (status != ServiceStatus.SUCCESS
+                && status != ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE) {
+            fail("Expected SUCCESS");
+        }
+        // assertEquals("Expected SUCCESS, not timeout", ServiceStatus.SUCCESS, mEngineTester.waitForEvent());
 
         Object data = mEngineTester.data();
         assertTrue(data == null);
@@ -182,77 +238,31 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
         Log.i(LOG_TAG, "**** testGetActivities (SUCCESS) ****\n");
     }
 
-    @MediumTest
-    @Suppress // Takes too long.
+    @MediumTest   
     public void testGetActivitiesGood() {
 
         boolean testPass = true;
         mState = ActivityTestState.GET_ACTIVITIES_SUCCESS;
         // re-test with valid Me profile
         Contact meProfile = mTestModule.createDummyContactData();
-        assertEquals("Could not access db", ServiceStatus.SUCCESS, SyncMeDbUtils.setMeProfile(mApplication.getDatabase(),meProfile));
-        
-
+        assertEquals("Could not access db", ServiceStatus.SUCCESS, SyncMeDbUtils.setMeProfile(mApplication.getDatabase(), meProfile));
+      
+        NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
         mEng.addStatusesSyncRequest();
-        assertEquals("Expected SUCCESS, not timeout", ServiceStatus.SUCCESS, mEngineTester.waitForEvent());
 
+        ServiceStatus status = mEngineTester.waitForEvent();
+        if (status != ServiceStatus.SUCCESS &&
+        						status != ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE){
+        	fail("Expected SUCCESS");
+        }
+        //assertEquals("Expected SUCCESS, not timeout", ServiceStatus.SUCCESS, mEngineTester.waitForEvent());
+        
         Object data = mEngineTester.data();
         assertTrue(data == null);
 
         assertTrue("testGetActivities() failed", testPass);
         Log.i(LOG_TAG, "**** testGetActivities (SUCCESS) ****\n");
     }
-
-    @MediumTest
-    @Suppress // Takes too long.
-    public void testGetActivitiesServerErr() {
-        boolean testPass = true;
-        mState = ActivityTestState.GET_ACTIVITIES_SERVER_ERR;
-
-        NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
-        mEng.addStatusesSyncRequest();
-        ServiceStatus status = mEngineTester.waitForEvent();
-        if (status == ServiceStatus.SUCCESS) {
-            throw (new RuntimeException("Did not expect SUCCESS"));
-        }
-
-        Object data = mEngineTester.data();
-        assertTrue(data == null);
-
-        assertTrue("testGetActivitiesServerErr() failed", testPass);
-        Log.i(LOG_TAG, "**** testGetActivitiesServerErr (SUCCESS) ****\n");
-    }
-
-    @MediumTest
-    @Suppress // Takes too long.
-    public void testGetActivitiesUnexpectedResponse() {
-        boolean testPass = true;
-        mState = ActivityTestState.GET_ACTIVITIES_UNEXPECTED_RESPONSE;
-
-        NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
-        mEng.addStatusesSyncRequest();
-
-        assertEquals("Expected ERROR_COMMS, not timeout", ServiceStatus.ERROR_COMMS, mEngineTester.waitForEvent());
-
-        Object data = mEngineTester.data();
-        assertTrue(data == null);
-
-        assertTrue("testGetActivitiesUnexpectedResponse() failed", testPass);
-        Log.i(LOG_TAG, "**** testGetActivitiesUnexpectedResponse (SUCCESS) ****\n");
-    }
-
-    /*
-     * @MediumTest public void testSetStatus(){ boolean testPass = true; mState
-     * = ActivityTestState.SET_STATUS; List<ActivityItem> actList = new
-     * ArrayList<ActivityItem>(); ActivityItem actItem = createActivityItem();
-     * actList.add(actItem);
-     * NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
-     * mEng.addUiSetStatusRequest(actList); ServiceStatus status =
-     * mEngineTester.waitForEvent(); if(status != ServiceStatus.SUCCESS){
-     * throw(new RuntimeException("Expected SUCCESS")); }
-     * assertTrue("testSetStatus() failed", testPass); Log.i(LOG_TAG,
-     * "**** testSetStatus (SUCCESS) ****\n"); }
-     */
 
     @MediumTest
     public void testOnSyncComplete() {
@@ -270,10 +280,12 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
         Log.i(LOG_TAG, "**** testOnSyncComplete (SUCCESS) ****\n");
     }
 
+       
     @MediumTest
     public void testGetNextRuntime() {
         boolean testPass = true;
         mState = ActivityTestState.GET_NEXT_RUNTIME;
+        mEng.run();
         long runtime = mEng.getNextRunTime();
         if (runtime != -1) {
             testPass = false;
@@ -283,8 +295,9 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
         Log.i(LOG_TAG, "**** testGetNextRuntime (SUCCESS) ****\n");
     }
 
-    @Suppress
+
     @MediumTest
+    
     public void testPushMessage() {
         boolean testPass = true;
         mState = ActivityTestState.GET_ACTIVITIES_SUCCESS;
@@ -309,27 +322,204 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
         Log.i(LOG_TAG, "**** testPushMessage (SUCCESS) ****\n");
     }
 
-    /*
-     * @MediumTest public void testGetTimelineEvent(){ boolean testPass = true;
-     * mState = ActivityTestState.GET_TIMELINE_EVENT_FROM_SERVER; Contact
-     * meProfile = mTestModule.createDummyContactData(); ServiceStatus status =
-     * mApplication.getDatabase().setMeProfile(meProfile); if(status !=
-     * ServiceStatus.SUCCESS){ throw(new
-     * RuntimeException("Could not access db")); }
-     * mEng.addUiGetActivitiesRequest(); status = mEngineTester.waitForEvent();
-     * if(status != ServiceStatus.SUCCESS){ throw(new
-     * RuntimeException("Expected SUCCESS")); } Object data =
-     * mEngineTester.data(); assertTrue(data==null);
-     * mEng.addUiGetActivitiesRequest(); status = mEngineTester.waitForEvent();
-     * if(status != ServiceStatus.SUCCESS){ throw(new
-     * RuntimeException("Expected SUCCESS")); } data = mEngineTester.data();
-     * assertTrue(data==null); assertTrue("testPushMessage() failed", testPass);
-     * Log.i(LOG_TAG, "**** testGetTimelineEvent (SUCCESS) ****\n"); }
-     */
-
+    @MediumTest    
+    public void testUpdatePhoneCalls() {
+    	mState = ActivityTestState.GET_ACTIVITIES_SUCCESS;
+    	addNativeCall();
+    	mEng.addUiRequestToQueue(ServiceUiRequest.UPDATE_PHONE_CALLS, null);
+    	ServiceStatus status = mEngineTester.waitForEvent();
+        if (status != ServiceStatus.SUCCESS
+                && status != ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE) {
+        	fail("Expected SUCCESS");
+        }
+        deleteNativeCall();
+    }
+    
     @MediumTest
-    @Suppress // Takes too long.
+    public void testPopulatedActivities() {
+        boolean testPass = true;
+        mState = ActivityTestState.GET_POPULATED_ACTIVITIES;
+
+        NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
+        mEng.addStatusesSyncRequest();
+
+        ServiceStatus status = mEngineTester.waitForEvent();
+        if (status != ServiceStatus.SUCCESS
+                && status != ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE) {
+            fail("Expected SUCCESS");
+        }
+        // assertEquals("Expected SUCCESS, not timeout", ServiceStatus.SUCCESS, mEngineTester.waitForEvent());
+
+        assertTrue("testPopulatedActivities() failed", testPass);
+        Log.i(LOG_TAG, "**** testPopulatedActivities (SUCCESS) ****\n");
+    }
+    
+    
+    @MediumTest
+    public void testFetchTimelines()
+    {
+    	NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
+    	addNativeCall();
+    	mState = ActivityTestState.GET_TIMELINE_EVENT_FROM_SERVER;
+    	mEng.addOlderTimelinesRequest();
+    	ServiceStatus status = mEngineTester.waitForEvent();
+        if (status != ServiceStatus.SUCCESS &&
+         						status != ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE){
+        	fail("Expected SUCCESS");
+        }
+        deleteNativeCall();
+    }
+    
+    @MediumTest
+    public void testFetchStatuses()
+    {
+    	NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
+    	mState = ActivityTestState.GET_ACTIVITIES_SUCCESS;
+    	mEng.addGetOlderStatusesRequest();
+    	
+    	ServiceStatus status = mEngineTester.waitForEvent();
+        if (status != ServiceStatus.SUCCESS &&
+         						status != ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE){
+         	fail("Expected SUCCESS");
+         }
+    }
+    
+    @MediumTest
+    public void testUpdateSMS() {
+    	mState = ActivityTestState.GET_ACTIVITIES_SUCCESS;
+		sendSMSToPhone("+919877756765");
+    	mEng.addUiRequestToQueue(ServiceUiRequest.UPDATE_SMS, null);
+    	
+    	ServiceStatus status = mEngineTester.waitForEvent();
+        if (status != ServiceStatus.SUCCESS &&
+        						status != ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE){
+        	fail("Expected SUCCESS");
+        }
+        deleteSMS();
+        
+    }
+    
+    public void testUpdateSMSWithContact()
+    {
+    	addNativeContact();
+    	mState = ActivityTestState.GET_ACTIVITIES_SUCCESS;
+		sendSMSToPhone(mDummyContactNumber);
+    	mEng.addUiRequestToQueue(ServiceUiRequest.UPDATE_SMS, null);
+    	
+    	ServiceStatus status = mEngineTester.waitForEvent();
+        if (status != ServiceStatus.SUCCESS &&
+        						status != ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE){
+        	fail("Expected SUCCESS");
+        }
+        deleteSMS();
+        
+    	
+    	deleteContact();
+    	
+    }
+   
+    
+    private static final int INBOX = 1;
+    private static final int SENT=2;
+    public void testUpdateMMS()
+    {
+
+    	mState = ActivityTestState.GET_ACTIVITIES_SUCCESS;
+    	insertMMS(INBOX,UTF_8,"12312345");
+    	mEng.addUiRequestToQueue(ServiceUiRequest.UPDATE_SMS, null);
+    	
+    	ServiceStatus status = mEngineTester.waitForEvent();
+        if (status != ServiceStatus.SUCCESS &&
+        						status != ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE){
+        	fail("Expected SUCCESS");
+        }
+        
+        deleteMMS();
+        
+        insertMMS(SENT,UTF_8,"1111");
+        mEng.addUiRequestToQueue(ServiceUiRequest.UPDATE_SMS, null);
+    	
+        status = mEngineTester.waitForEvent();
+        if (status != ServiceStatus.SUCCESS 
+                && status != ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE) {
+        	fail("Expected SUCCESS");
+        }
+        
+        deleteMMS();
+    }
+    
+    public void testUpdateMMSNoSubject()
+    {
+
+    	mState = ActivityTestState.GET_ACTIVITIES_SUCCESS;
+    	insertMMSNoSubject(INBOX,UTF_8,"12312345");
+    	mEng.addUiRequestToQueue(ServiceUiRequest.UPDATE_SMS, null);
+    	
+    	ServiceStatus status = mEngineTester.waitForEvent();
+        if (status != ServiceStatus.SUCCESS &&
+        						status != ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE){
+        	fail("Expected SUCCESS");
+        }
+        
+        deleteMMS();
+        
+        insertMMSNoSubject(SENT,UTF_8,"1111");
+        mEng.addUiRequestToQueue(ServiceUiRequest.UPDATE_SMS, null);
+    	
+        status = mEngineTester.waitForEvent();
+        if (status != ServiceStatus.SUCCESS 
+                && status != ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE){
+        	fail("Expected SUCCESS");
+        }
+        
+        deleteMMS();
+    }
+    
+    public void testUpdateMMSWithContact()
+    {
+    	addNativeContact();
+    	mState = ActivityTestState.GET_ACTIVITIES_SUCCESS;
+    	insertMMS(INBOX,UTF_8,mDummyContactNumber);
+    	mEng.addUiRequestToQueue(ServiceUiRequest.UPDATE_SMS, null);
+    	
+    	ServiceStatus status = mEngineTester.waitForEvent();
+        if (status != ServiceStatus.SUCCESS 
+                && status != ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE){
+        	fail("Expected SUCCESS");
+        }
+        
+        deleteMMS();
+    	deleteContact();
+    }
+    
+    
+    @MediumTest 
+    public void testMMSCharSet()
+    {
+    	int charSetList[] = {ANY_CHARSET,US_ASCII,ISO_8859_1,ISO_8859_2,
+    			             ISO_8859_3,ISO_8859_4,ISO_8859_5,ISO_8859_6,
+    			             ISO_8859_7,ISO_8859_8,ISO_8859_9,SHIFT_JIS,
+    			             UTF_8,BIG5,UCS2,UTF_16};
+    	
+    	for (int i = 0; i < charSetList.length;i++) {
+    		NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
+    		insertMMS(INBOX,charSetList[i],"3444123");
+        	mEng.addUiRequestToQueue(ServiceUiRequest.UPDATE_SMS, null);
+        	
+        	ServiceStatus status = mEngineTester.waitForEvent();
+            if (status != ServiceStatus.SUCCESS &&
+            						status != ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE){
+            	fail("Expected SUCCESS");
+            }
+            deleteMMS();
+    	}
+    	
+    }
+   
+    @MediumTest
     public void testMessageLog() {
+    	
+    	
         final String ADDRESS = "address";
         // final String PERSON = "person";
         final String DATE = "date";
@@ -345,48 +535,55 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
         values.put(STATUS, -1);
         values.put(TYPE, 2);
         values.put(BODY, "SMS inserting test");
-        /* Uri inserted = */mApplication.getContentResolver().insert(Uri.parse("content://sms"),
-                values);
+        mApplication.getContentResolver().insert(Uri.parse("content://sms"),values);
 
         mState = ActivityTestState.GET_ACTIVITIES_SUCCESS;
+        NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
         // re-test with valid Me profile
+        SyncMeDbUtils.setMeProfileId(null);
         Contact meProfile = mTestModule.createDummyContactData();
         assertEquals("Could not access db", ServiceStatus.SUCCESS, SyncMeDbUtils.setMeProfile(mApplication.getDatabase(),meProfile));
 
         mEng.addStatusesSyncRequest();
-
-        assertEquals("Expected SUCCESS, not timeout", ServiceStatus.SUCCESS, mEngineTester.waitForEvent());
+        
+        ServiceStatus status = mEngineTester.waitForEvent();
+        if (status != ServiceStatus.SUCCESS 
+                && status != ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE){
+        	fail("Expected SUCCESS");
+        }
         
         Object data = mEngineTester.data();
         assertTrue(data == null);
-
+        values.put(ADDRESS, "+61408219691");
         values.put(DATE, "1650000000000");
-        /* inserted = */mApplication.getContentResolver()
-                .insert(Uri.parse("content://mms"), values);
+        mApplication.getContentResolver().insert(Uri.parse("content://mms"), values);
 
         mEng.addStatusesSyncRequest();
 
-        assertEquals("Could not access db", ServiceStatus.SUCCESS, mEngineTester.waitForEvent());
-
+        status = mEngineTester.waitForEvent();
+        if (status != ServiceStatus.SUCCESS
+                && status != ServiceStatus.UPDATED_TIMELINES_FROM_NATIVE) {
+            fail("Expected SUCCESS");
+        }
+        // assertEquals("Could not access db", ServiceStatus.SUCCESS, mEngineTester.waitForEvent());
         Log.i(LOG_TAG, "**** testGetActivities (SUCCESS) ****\n");
     }
-
-    @Suppress
-    public void testPopulatedActivities() {
-        boolean testPass = true;
-        mState = ActivityTestState.GET_POPULATED_ACTIVITIES;
-
-        NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
-
-        assertEquals("Expected SUCCESS, not timeout", ServiceStatus.SUCCESS, mEngineTester.waitForEvent());
-
-        assertTrue("testPopulatedActivities() failed", testPass);
-        Log.i(LOG_TAG, "**** testPopulatedActivities (SUCCESS) ****\n");
+    
+    @MediumTest
+    public void testPublicGetterMethods()
+    {
+    	// This test case is not very useful. Just calls the methods but don't do much
+    	mEng.onLoginStateChanged(false);
+    	mEng.isTimelinesUpdated();
+    	mEng.setTimelinesUpdated(true);
+    	mEng.onProgressEvent(null, 0);
+    	mEng.onContactSyncStateChange(null, null, null);
+    	mEng.onReset();
     }
 
     @Override
     public void reportBackToEngine(int reqId, EngineId engine) {
-        Log.d("TAG", "IdentityEngineTest.reportBackToEngine");
+        Log.d("TAG", "ActivityEngineTest.reportBackToEngine");
         ResponseQueue respQueue = ResponseQueue.getInstance();
         List<BaseDataType> data = new ArrayList<BaseDataType>();
 
@@ -463,7 +660,9 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
                 err.errorDescription = "Fail";
                 data.add(err);
                 respQueue.addToResponseQueue(new DecodedResponse(reqId, data, engine, DecodedResponse.ResponseType.SERVER_ERROR.ordinal()));
-                mEng.onCommsInMessage();
+                if(mEng != null) {
+                    mEng.onCommsInMessage();
+                }
                 break;
             case GET_ACTIVITIES_UNEXPECTED_RESPONSE:
                 StatusMsg msg = new StatusMsg();
@@ -494,10 +693,125 @@ public class ActivitiesEngineTest extends InstrumentationTestCase implements
 
     }
 
+    protected static final Uri MMS_CONTENT_URI = Uri.parse("content://mms");
+    private static final int PDU_FROM_FIELD = 0x89;
+    private static final int PDU_TO_FIELD = 0x97;
+    private void insertMMS(int msg_box, int char_set, String addr)
+    {
+    	final String DATE = "date";
+    	final String SUBJECT = "sub";
+    	final String SUBJECT_CS = "sub_cs" ;
+    	final String MSG_BOX = "msg_box";
+    	ContentValues values = new ContentValues();
+    	values.put(DATE, "1630000000000");
+    	values.put(SUBJECT, "Hello");
+    	values.put(SUBJECT_CS, char_set);
+
+    	// MSG_BOX 1 means in Inbox
+    	// MSG_BOX 2 menas in Sent
+    
+    	values.put(MSG_BOX, msg_box);
+    	
+    	Uri uri = mApplication.getContentResolver().insert(Uri.parse("content://mms"),values);
+    	Uri.Builder builder = MMS_CONTENT_URI.buildUpon();
+    	String msgId = uri.getLastPathSegment();
+        builder.appendPath(msgId).appendPath("addr");
+    	ContentValues val2 = new ContentValues();
+    	val2.put("address", addr);
+    	val2.put("charset",UTF_8);
+    	if(msg_box == 1) {
+    		val2.put("type", PDU_FROM_FIELD);
+    	} else {
+    		val2.put("type", PDU_TO_FIELD);
+    	}
+    	Uri uriPart = builder.build();
+    	mApplication.getContentResolver().insert(uriPart,val2);
+    	
+    }
+    
+    private void insertMMSNoSubject(int msg_box, int char_set, String addr)
+    {
+    	final String DATE = "date";
+    	final String MSG_BOX = "msg_box";
+    	ContentValues values = new ContentValues();
+    	values.put(DATE, "1630000000000");
+
+    	// MSG_BOX 1 means in Inbox
+    	// MSG_BOX 2 menas in Sent
+    
+    	values.put(MSG_BOX, msg_box);
+    	
+    	mApplication.getContentResolver().insert(Uri.parse("content://mms"),values);
+    }
+    
+    private int deleteMMS()
+    {
+    	return mApplication.getContentResolver().delete(Uri.parse("content://mms"), "date=?", new String[] {"1630000000000"});
+    }
+    
+    private void sendSMSToPhone(String from)
+    {
+    	final String ADDRESS = "address";
+        final String DATE = "date";
+        final String READ = "read";
+        final String STATUS = "status";
+        final String TYPE = "type";
+        final String BODY = "body";
+      
+        ContentValues values = new ContentValues();
+        values.put(ADDRESS, from);
+        values.put(DATE, "1630000000000");
+        values.put(READ, 1);
+        values.put(STATUS, -1);
+        values.put(TYPE, 2);
+        values.put(BODY, "SMS inserting test");
+        mApplication.getContentResolver().insert(Uri.parse("content://sms"),values);
+    }
+    
+    private int deleteSMS()
+    {
+    	return mApplication.getContentResolver().delete(Uri.parse("content://sms"), "date=?", new String[] {"1630000000000"});
+    }
+    
+    private static final String mDummyContactName = "Abc";
+    private static final String mDummyContactNumber = "123123"; 
+    private void addNativeContact()
+    {
+    	ContentValues peopleValues = new ContentValues();
+        peopleValues.put(Contacts.People.NAME,mDummyContactName );
+        peopleValues.put(Contacts.Phones.NUMBER, mDummyContactNumber);
+        peopleValues.put(Contacts.Phones.TYPE, Contacts.Phones.TYPE_MOBILE);
+        mApplication.getContentResolver().insert(Contacts.People.CONTENT_URI, peopleValues);
+    }
+    
+    private void addNativeCall()
+    {
+    	ContentValues peopleValues = new ContentValues();
+    	peopleValues.put(Calls._ID,12345 );
+        peopleValues.put(Calls.NUMBER,mDummyContactNumber );
+        peopleValues.put(Calls.DATE, "1650000000000");
+        peopleValues.put(Calls.TYPE, 1);
+        mApplication.getContentResolver().insert(Calls.CONTENT_URI, peopleValues);
+        peopleValues.put(Calls._ID,12346 );
+        peopleValues.put(Calls.TYPE, 2);
+        mApplication.getContentResolver().insert(Calls.CONTENT_URI, peopleValues);
+        peopleValues.put(Calls._ID,12347 );
+        peopleValues.put(Calls.TYPE, 3);
+        mApplication.getContentResolver().insert(Calls.CONTENT_URI, peopleValues);
+    }
+    
+    private int deleteNativeCall()
+    {
+    	return mApplication.getContentResolver().delete(Calls.CONTENT_URI, "date=?", new String[] {"1650000000000"});
+    }
+    
+    private int deleteContact()
+    {
+    	return mApplication.getContentResolver().delete(Contacts.People.CONTENT_URI, "name=?", new String[] {mDummyContactName});
+    }
+    
     @Override
     public void onEngineException(Exception exp) {
         // TODO Auto-generated method stub
-
     }
-
 }

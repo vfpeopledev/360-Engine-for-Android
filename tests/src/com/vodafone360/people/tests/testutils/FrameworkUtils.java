@@ -94,12 +94,6 @@ public final class FrameworkUtils {
     public static IPeopleService createDummyIPeopleService(
             final boolean loginRequired) {
         return new IPeopleService() {
-            /** Store the state of any subscribe unsubscribe calls. **/
-            private Handler mHandler = null;
-            /** Store the state of any fetchPrivacyStatement() calls. **/
-            private boolean mFetchPrivacyStatement = false;
-            /** Store the state of any fetchTermsOfService() calls. **/
-            private boolean mFetchTermsOfService = false;
             @Override
             public void addEventCallback(final Handler uiHandler) {
             }
@@ -111,11 +105,9 @@ public final class FrameworkUtils {
             }
             @Override
             public void fetchPrivacyStatement() {
-                mFetchPrivacyStatement = true;
             }
             @Override
             public void fetchTermsOfService() {
-                mFetchTermsOfService = true;
             }
             @Override
             public void fetchUsernameState(final String username) {
@@ -190,11 +182,9 @@ public final class FrameworkUtils {
             }
             @Override
             public void subscribe(final Handler handler, final Long contactId, final boolean chat) {
-                mHandler = handler;
             }
             @Override
             public void unsubscribe(final Handler handler) {
-                mHandler = null;
             }
             @Override
             public void updateChatNotification(final long localContactId) {

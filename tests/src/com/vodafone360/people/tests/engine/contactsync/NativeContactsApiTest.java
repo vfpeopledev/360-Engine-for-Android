@@ -31,24 +31,19 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.vodafone360.people.MainApplication;
+import android.test.InstrumentationTestCase;
+import android.test.suitebuilder.annotation.MediumTest;
+import android.test.suitebuilder.annotation.SmallTest;
+import android.test.suitebuilder.annotation.Suppress;
+import android.util.Log;
+
 import com.vodafone360.people.engine.contactsync.ContactChange;
 import com.vodafone360.people.engine.contactsync.NativeContactsApi;
 import com.vodafone360.people.engine.contactsync.NativeContactsApi.Account;
 import com.vodafone360.people.engine.contactsync.NativeContactsApi.ContactsObserver;
 import com.vodafone360.people.engine.contactsync.NativeContactsApi1;
 import com.vodafone360.people.engine.contactsync.NativeContactsApi2;
-import com.vodafone360.people.tests.engine.contactsync.NativeContactsApiTestHelper.IPeopleAccountChangeObserver;
 import com.vodafone360.people.utils.VersionUtils;
-
-import android.app.Instrumentation;
-import android.database.ContentObserver;
-import android.os.Handler;
-import android.test.InstrumentationTestCase;
-import android.test.suitebuilder.annotation.MediumTest;
-import android.test.suitebuilder.annotation.SmallTest;
-import android.test.suitebuilder.annotation.Suppress;
-import android.util.Log;
 
 public class NativeContactsApiTest extends InstrumentationTestCase {
 	private static final String LOG_TAG = "NativeContactsApiTest";
@@ -65,12 +60,12 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
     /**
      * Google account type.
      */
-    private static final int GOOGLE_ACCOUNT_TYPE = 2;
+    // private static final int GOOGLE_ACCOUNT_TYPE = 2;
 
     /**
      * Vendor specific type.
      */
-    private static final int PHONE_ACCOUNT_TYPE = 3;
+    // private static final int PHONE_ACCOUNT_TYPE = 3;
 
     /**
      * Account type for 360 People in the Native Accounts. 
@@ -364,7 +359,7 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 	 *       and needs more development time to be completed.
 	 */
 	@SmallTest
-	@Suppress
+	
 	public void testContactsChangeObserver() {
 
 		//ObserverThread observerThread = new ObserverThread();
@@ -472,7 +467,6 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 		mNabApi.unregisterObserver();
 	}
 	
-	
 	@MediumTest
 	@Suppress
 	public void testAddGetRemoveContacts() {
@@ -484,7 +478,17 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 			threadWait(100);
 		}
 		
+		// Take care of the case when the Account have some Ids. 
 		long[] ids = getContactIdsForAllAccounts();
+		if(ids != null)
+		{
+		    final int idsCount = ids.length;
+		    for(int i = 0; i < idsCount; i++) {
+			    mNabApi.removeContact(ids[i]);
+		    }
+		    ids = getContactIdsForAllAccounts();
+		}
+		
 		assertNull(ids);
 		
 		final int numRandomContacts = 10;
@@ -724,22 +728,6 @@ public class NativeContactsApiTest extends InstrumentationTestCase {
 			e.printStackTrace();
 		}
 	}
-	
-	/**
-	 * Utility method to put the thread to sleep
-	 * @param time
-	 */
-	private void threadSleep(int time) {
-		try {
-			synchronized(this) {
-				Thread.sleep(time);
-			}
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-		
 
 	/**
 	 * Utility method to verify the presence of people accounts

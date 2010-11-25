@@ -29,7 +29,7 @@ import com.vodafone360.people.utils.VersionUtils;
 /**
  * JUnit tests for the UpdateNativeContacts processor.
  */
-@Suppress
+
 public class UpdateNativeContactsTest  extends AndroidTestCase {
     
     /**
@@ -109,12 +109,14 @@ public class UpdateNativeContactsTest  extends AndroidTestCase {
      */
     public void testConstructor() {
         
+        @SuppressWarnings("unused")
         UpdateNativeContacts processor = new UpdateNativeContacts(mContactSyncCallback, mDatabaseHelper); 
     }
     
     /**
      * Tests running the processor with an empty database.
      */
+    @Suppress
     public void testRunWithEmptyDatabase() {
         
         UpdateNativeContacts processor = new UpdateNativeContacts(mContactSyncCallback, mDatabaseHelper);
@@ -127,6 +129,7 @@ public class UpdateNativeContactsTest  extends AndroidTestCase {
     /**
      * Tests the export of new syncable contacts.
      */
+    @Suppress
     public void testExportingNewContacts() {
         
         final int CONTACTS_COUNT = 10;
@@ -236,6 +239,7 @@ public class UpdateNativeContactsTest  extends AndroidTestCase {
     /**
      * Tests the export of a new syncable contact with all the possible details combinations.
      */
+    @Suppress
     public void testExportingContactAllDetails() {
         
         UpdateNativeContacts processor = new UpdateNativeContacts(mContactSyncCallback, mDatabaseHelper);
@@ -589,13 +593,9 @@ public class UpdateNativeContactsTest  extends AndroidTestCase {
             public ProcessorComplete(ServiceStatus status, String failureList, Object data) {
                 
                 this.status = status;
-                this.failureList = failureList;
-                this.data = data;
             }
             
             public ServiceStatus status;
-            public String failureList;
-            public Object data;
         }
         
         /**
@@ -605,13 +605,11 @@ public class UpdateNativeContactsTest  extends AndroidTestCase {
         
         @Override
         public BaseEngine getEngine() {
-            // TODO Auto-generated method stub
             return null;
         }
     
         @Override
         public void onDatabaseChanged() {
-            // TODO Auto-generated method stub
             
         }
     
@@ -623,19 +621,16 @@ public class UpdateNativeContactsTest  extends AndroidTestCase {
     
         @Override
         public void setActiveRequestId(int reqId) {
-            // TODO Auto-generated method stub
             
         }
     
         @Override
         public void setSyncStatus(SyncStatus syncStatus) {
-            // TODO Auto-generated method stub
             
         }
     
         @Override
         public void setTimeout(long timeout) {
-            // TODO Auto-generated method stub
             
         }
     }

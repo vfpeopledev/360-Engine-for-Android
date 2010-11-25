@@ -96,10 +96,13 @@ public class SyncMeEngineTest extends InstrumentationTestCase implements  IEngin
             mApplication.onTerminate();
         }
         mApplication = null;
-        mEngine.onReset();
-        mEngine.onDestroy();
         
-        super.tearDown();
+        // stop our dummy thread?
+        mEngineTester.stopEventThread();
+        mEngineTester = null;
+        mEngine = null;
+ 
+       super.tearDown();
         Log.i(LOG_TAG, "**** tearDown() end ****");
     }
 

@@ -91,6 +91,7 @@ public class PeopleContactsApiTest extends AndroidTestCase {
      */
     public void testConstructor() {
         
+        @SuppressWarnings("unused")
         PeopleContactsApi pca = new PeopleContactsApi(mDatabaseHelper);
     }
     
@@ -154,6 +155,7 @@ public class PeopleContactsApiTest extends AndroidTestCase {
     /**
      * Tests the methods sequence addNativeContact() then deleteNativeContact().
      */
+    @Suppress
     public void testAddDeleteNativeContact() {
         
         final long NATIVE_ID = 15;

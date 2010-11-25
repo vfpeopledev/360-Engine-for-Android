@@ -25,14 +25,10 @@
 
 package com.vodafone360.people.tests.utils;
 
-import static android.text.format.DateUtils.FORMAT_SHOW_DATE;
-import static android.text.format.DateUtils.FORMAT_SHOW_YEAR;
-
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 import android.test.AndroidTestCase;
-import android.text.format.DateUtils;
 
 import com.vodafone360.people.utils.MathUtils;
 

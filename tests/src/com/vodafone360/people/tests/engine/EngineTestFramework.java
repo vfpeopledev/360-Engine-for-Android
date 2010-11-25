@@ -35,12 +35,11 @@ import com.vodafone360.people.datatypes.AuthSessionHolder;
 import com.vodafone360.people.datatypes.BaseDataType;
 import com.vodafone360.people.datatypes.ServerError;
 import com.vodafone360.people.engine.BaseEngine;
-import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.engine.EngineManager.EngineId;
+import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.engine.login.LoginEngine;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
-import com.vodafone360.people.service.agent.NetworkAgent;
 import com.vodafone360.people.service.agent.UiAgent;
 import com.vodafone360.people.service.io.QueueManager;
 import com.vodafone360.people.service.io.ResponseQueue;
@@ -71,7 +70,7 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
 
     private Object mData = null;
 
-    private boolean mRequestCompleted;
+    private boolean mRequestCompleted = false;
 
     private static int K_REQ_TIMEOUT_MSA = 60000;
 
@@ -98,7 +97,11 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
                     long mCurrentTime = System.currentTimeMillis();
                     long nextRunTime = -1;
                     try {
-                        nextRunTime = mEngine.getNextRunTime();
+                    	if (mEngine.engineId() == EngineId.ACTIVITIES_ENGINE) {
+                    		nextRunTime = mEngine.getNextRunTimeForTest();
+                    	} else {
+                    		nextRunTime = mEngine.getNextRunTime();
+                    	}
                     } catch (Exception e) {
                         onEngineException(e);
                     }
@@ -150,18 +153,37 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
 
     public ServiceStatus waitForEvent(int ts) {
         Log.d("TAG", "EngineTestFramework waitForEvent");
-        NetworkAgent.setAgentState(NetworkAgent.AgentState.CONNECTED);
         kickWorkerThread();
 
         long endTime = System.nanoTime() + (((long)ts) * 1000000);
         ServiceStatus returnStatus = ServiceStatus.ERROR_UNEXPECTED_RESPONSE;
-        mStatus = 5; // ERROR_COMMS_TIMEOUT
+      
         synchronized (mEngReqLock) {
             while (!mRequestCompleted && System.nanoTime() < endTime) {
                 try {
+                	mStatus = 6; // ERROR_COMMS_TIMEOUT
+                	 mEngReqLock.wait(ts);
+                } catch (InterruptedException e) { }
+            }
+            returnStatus = ServiceStatus.fromInteger(mStatus);
+        }
+        mRequestCompleted = false;
+
+        return returnStatus;
+    }
+    
+    public ServiceStatus simpleWait(int ts) {
+        Log.d("TAG", "EngineTestFramework waitWithoutRun");
+        
+        long endTime = System.nanoTime() + (((long)ts) * 1000000);
+        ServiceStatus returnStatus = ServiceStatus.ERROR_UNEXPECTED_RESPONSE;
+      
+        synchronized (mEngReqLock) {
+            while (System.nanoTime() < endTime) {
+                try {
+                    mStatus = 6; // ERROR_COMMS_TIMEOUT
                     mEngReqLock.wait(ts);
-                } catch (InterruptedException e) {
-                }
+                } catch (InterruptedException e) { }
             }
             returnStatus = ServiceStatus.fromInteger(mStatus);
         }
@@ -231,7 +253,9 @@ public class EngineTestFramework implements IEngineEventCallback, IPeopleTestFra
             mActive = false;
             mObjectLock.notify();
         }
-        mConnThread.stopThread();
+        if(mConnThread != null) {
+        	mConnThread.stopThread();
+        }
     }
 
     private void onEngineException(Exception e) {

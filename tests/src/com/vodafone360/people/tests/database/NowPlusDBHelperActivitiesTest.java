@@ -28,17 +28,12 @@ package com.vodafone360.people.tests.database;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.database.Cursor;
 import android.test.ApplicationTestCase;
 import android.test.suitebuilder.annotation.MediumTest;
-import android.test.suitebuilder.annotation.Suppress;
 import android.util.Log;
 
 import com.vodafone360.people.MainApplication;
 import com.vodafone360.people.database.DatabaseHelper;
-import com.vodafone360.people.database.tables.ActivitiesTable;
-import com.vodafone360.people.database.tables.ActivitiesTable.TimelineNativeTypes;
-import com.vodafone360.people.database.tables.ActivitiesTable.TimelineSummaryItem;
 import com.vodafone360.people.datatypes.ActivityItem;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.tests.TestModule;

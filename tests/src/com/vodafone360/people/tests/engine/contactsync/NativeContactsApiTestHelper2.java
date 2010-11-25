@@ -25,18 +25,14 @@
 
 package com.vodafone360.people.tests.engine.contactsync;
 
-import com.vodafone360.people.utils.CursorUtils;
-
-import android.content.ContentResolver;
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.accounts.OnAccountsUpdateListener;
 import android.content.ContentUris;
-import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.provider.ContactsContract;
-import android.accounts.AccountManager;
-import android.accounts.OnAccountsUpdateListener;
-import android.accounts.Account;
 
 public class NativeContactsApiTestHelper2 extends NativeContactsApiTestHelper {
 	
