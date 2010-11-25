@@ -169,6 +169,13 @@ public abstract class BaseEngine {
      *         CurrentTime + 60000 to run in 1 minute, etc.
      */
     public abstract long getNextRunTime();
+    
+    /**
+     * To be used only by JUnit test
+     */
+    public long getNextRunTimeForTest() {
+    	return 0;
+    };
 
     /**
      * Do some work but anything that takes longer than 1 second must be broken

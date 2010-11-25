@@ -100,6 +100,8 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
     /** The last known status of the contacts sync. */
     private ServiceStatus mLastStatus = ServiceStatus.SUCCESS;
 
+    private boolean mJUnitTestMode = false ;
+    
     /**
      * Observer interface allowing interested parties to receive notification of
      * changes in Contact sync state.
@@ -871,9 +873,11 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         if (!Settings.ENABLE_SERVER_CONTACT_SYNC) {
             return false;
         }
-        if (!EngineManager.getInstance().getSyncMeEngine().isFirstTimeMeSyncComplete()) {
+		if (!mJUnitTestMode){
+        	if (!EngineManager.getInstance().getSyncMeEngine().isFirstTimeMeSyncComplete()) {
             return false;
-        }
+        	}
+		}
         if (!mFirstTimeSyncStarted) {
             return false;
         }
@@ -1634,7 +1638,7 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
         // FetchNativeContacts processor.
         startFetchNativeContactSyncTimer();
     }
-    
+  
     /**
      * Called before full contact sync is started to acquire partial wake lock. 
      * This will ensure that contact sync will continue even if device sleeps.
@@ -1691,5 +1695,12 @@ public class ContactSyncEngine extends BaseEngine implements IContactSyncCallbac
             mActiveProcessor = null;
         }
     }
-   
+
+    /**
+     * Sets the test mode flag.
+     * Used to bypass dependency with other modules while unit testing
+     */
+    public void setTestMode(boolean mode){
+    	mJUnitTestMode = mode;
+    }
 }

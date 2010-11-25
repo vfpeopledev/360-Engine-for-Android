@@ -26,7 +26,6 @@
 package com.vodafone360.people.engine.identities;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -42,8 +41,8 @@ import com.vodafone360.people.datatypes.IdentityCapability;
 import com.vodafone360.people.datatypes.PushEvent;
 import com.vodafone360.people.datatypes.StatusMsg;
 import com.vodafone360.people.engine.BaseEngine;
-import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.engine.EngineManager.EngineId;
+import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.agent.UiAgent;
@@ -187,6 +186,8 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      */
     private final DatabaseHelper mDatabaseHelper;
 
+	/** Used only by JUnit to set test status. */
+    private boolean mJUnitTestMode = false;
     /**
      * A list containing all the currently pending SNS.
      */
@@ -869,6 +870,17 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         if (uiAgent != null && uiAgent.isSubscribed()) {
             uiAgent.sendUnsolicitedUiEvent(request, b);
         } // end: send update to 3rd party identities ui if it is up
+        
+        //JUnit instrumentation module waits for UI event to set test status
+        //So even in Comms processing mode UI event is sent while testing
+        if (mJUnitTestMode){
+	        ServiceStatus status = ServiceStatus.SUCCESS;
+	        Bundle temp = new Bundle();
+	        temp.putParcelableArrayList("data", idBundle);
+	        mEventCallback.onUiEvent(ServiceUiRequest.UI_REQUEST_COMPLETE, request.ordinal(), status
+	                .ordinal(), temp.clone());
+        }
+        
     }
     
     /**
@@ -1118,4 +1130,13 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
     	
     	return false;
     }
+
+    /**
+     * Sets the test mode flag.
+     * Used to send UI events while JUnit test running
+     */
+    public void setTestMode(boolean mode){
+    	mJUnitTestMode = mode;
+    }
+
 }
