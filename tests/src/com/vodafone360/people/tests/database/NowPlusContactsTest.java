@@ -206,7 +206,6 @@ public class NowPlusContactsTest extends ApplicationTestCase<MainApplication> {
 		assertEquals(ServiceStatus.SUCCESS, status);
 		assertTrue(DatabaseHelper.doDetailsMatch(detail, fetchedDetail));
 		assertTrue(!DatabaseHelper.hasDetailChanged(detail, fetchedDetail));
-		assertEquals(ServiceStatus.SUCCESS, mDatabaseHelper.deleteAllGroups());
 		List<ServerIdInfo> serverIdList = new ArrayList<ServerIdInfo>();
 		ServerIdInfo info = new ServerIdInfo();
 		info.localId = fetchedDetail.localDetailID;
