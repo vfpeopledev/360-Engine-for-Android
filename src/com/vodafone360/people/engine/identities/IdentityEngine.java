@@ -44,6 +44,7 @@ import com.vodafone360.people.datatypes.StatusMsg;
 import com.vodafone360.people.engine.BaseEngine;
 import com.vodafone360.people.engine.IEngineEventCallback;
 import com.vodafone360.people.engine.EngineManager.EngineId;
+import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.service.ServiceUiRequest;
 import com.vodafone360.people.service.agent.UiAgent;
@@ -972,7 +973,9 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         if (mMyIdentityList != null) {
             synchronized(mMyIdentityList) {
                 for (Identity identity : mMyIdentityList) {
-                    if (identity.mName.toLowerCase().contains(ThirdPartyAccount.SNS_TYPE_FACEBOOK)) {
+                    final SocialNetwork socialNetwork =
+                        SocialNetwork.getNetworkBasedOnString(identity.mName);
+                    if (socialNetwork == SocialNetwork.FACEBOOK_COM) {
                         return true;
                     }
                 }
@@ -993,7 +996,9 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
         if (mMyIdentityList != null) {
             synchronized(mMyIdentityList) {
                 for (Identity identity : mMyIdentityList) {
-                    if (identity.mName.toLowerCase().contains(ThirdPartyAccount.SNS_TYPE_HYVES)) {
+                    final SocialNetwork socialNetwork =
+                        SocialNetwork.getNetworkBasedOnString(identity.mName);
+                    if (socialNetwork == SocialNetwork.HYVES_NL) {
                         return true;
                     }
                 }

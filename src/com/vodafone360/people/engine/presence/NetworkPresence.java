@@ -121,14 +121,24 @@ public class NetworkPresence implements Parcelable {
      * Hard coded networks with enable IM list
      */
     public static enum SocialNetwork implements Parcelable {
-        FACEBOOK_COM("facebook.com"),
-        HYVES_NL("hyves.nl"),
-        GOOGLE("google"),
-        MICROSOFT("microsoft"),
-        VKONTAKTE_RU("vkontakte.ru"),
-        ODNOKLASSNIKI_RU("odnoklassniki.ru"),
+        FACEBOOK_COM("facebook"), // Typically "facebook.com".
+        VKONTAKTE_RU("vkontakte"), // Typically "vkontakte.ru".
+        ODNOKLASSNIKI_RU("odnoklassniki"), // Typically "odnoklassniki.ru".
+        MICROSOFT("microsoft"), // Typically "microsoft".
+        MSN("msn"),
+        WINDOWS("windows"),
+        LIVE("live"),
+        GOOGLE("google"), // Typically "google".
+        VODAFONE("vodafone"),
+        NOWPLUS("nowplus"),
+        ZYB("zyb"),
+        TWITTER("twitter"),
+        HYVES_NL("hyves"), // Typically "hyves.nl".
+        STUDIVZ("studivz"),
+        PICASA("picasa"), // Typically "picasa.com".
+        FLICKR("flickr"),  // Typically "flickr.com".
+        INVALID("invalid");
 
-        INVALID("invalid"); 
         private String mSocialNetwork; // / The name of the field as it appears
                                        // in the database
 
@@ -175,20 +185,43 @@ public class NetworkPresence implements Parcelable {
          * @return SocialNetwork object for the provided underlying string.
          */
         public static SocialNetwork getNetworkBasedOnString(String sns) {
-            if (sns != null) {
-                if (sns.contains(ThirdPartyAccount.SNS_TYPE_VKONTAKTE)) {
-                    return VKONTAKTE_RU;
-                } else if (sns.contains(ThirdPartyAccount.SNS_TYPE_ODNOKLASSNIKI)) {
-                    return ODNOKLASSNIKI_RU;
-                } else if (sns.contains(ThirdPartyAccount.SNS_TYPE_FACEBOOK)) {
-                    return FACEBOOK_COM;
-                } else if (sns.contains(ThirdPartyAccount.SNS_TYPE_HYVES)) {
-                    return HYVES_NL;
-                } else if (ThirdPartyAccount.isWindowsLive(sns)) {
-                    return MICROSOFT;
-                } else if (sns.contains(ThirdPartyAccount.SNS_TYPE_GOOGLE)) {
-                    return GOOGLE;
-                }
+
+            /** Check input. **/
+            if (sns == null || sns.length() == 0) {
+                return null;
+            }
+
+            /** Set input to lower case. **/
+            final String id = sns.toLowerCase();
+
+            /** Check to see what strings the ID contains. **/
+            if (id.contains(FACEBOOK_COM.toString())) {
+                return FACEBOOK_COM;
+            } else if (id.contains(VKONTAKTE_RU.toString())) {
+                return VKONTAKTE_RU;
+            } else if (id.contains(ODNOKLASSNIKI_RU.toString())) {
+                return ODNOKLASSNIKI_RU;
+            } else if (id.contains(MSN.toString())
+                    || id.contains(LIVE.toString())
+                    || id.contains(MICROSOFT.toString())
+                    || id.contains(WINDOWS.toString())) {
+                return WINDOWS;
+            } else if (id.contains(GOOGLE.toString())) {
+                return GOOGLE;
+            } else if (id.contains(VODAFONE.toString())
+                    || id.contains(NOWPLUS.toString())
+                    || id.contains(ZYB.toString())) {
+                return VODAFONE;
+            } else if (id.contains(TWITTER.toString())) {
+                return TWITTER;
+            } else if (id.contains(HYVES_NL.toString())) {
+                return HYVES_NL;
+            } else if (id.contains(STUDIVZ.toString())) {
+                return STUDIVZ;
+            } else if (id.contains(PICASA.toString())) {
+                return PICASA;
+            } else if (id.contains(FLICKR.toString())) {
+                return FLICKR;
             }
             return null;
         }

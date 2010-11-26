@@ -30,6 +30,7 @@ import android.graphics.Bitmap;
 
 import com.vodafone360.people.R;
 import com.vodafone360.people.datatypes.Identity;
+import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.utils.LogUtils;
 
 /**
@@ -46,42 +47,6 @@ public class ThirdPartyAccount {
 
     /** username */
     private String mIdentityID;
-
-    /**
-     * Hard coded SN account names.
-     */
-    public static final String SNS_TYPE_FACEBOOK = "facebook";
-    
-    public static final String SNS_TYPE_VKONTAKTE = "vkontakte";
-    
-    public static final String SNS_TYPE_ODNOKLASSNIKI = "odnoklassniki";
-
-    private static final String SNS_TYPE_MICROSOFT = "microsoft";
-
-    private static final String SNS_TYPE_MSN = "msn";
-
-    private static final String SNS_TYPE_WINDOWS = "windows";
-
-    private static final String SNS_TYPE_LIVE = "live";
-
-    public static final String SNS_TYPE_GOOGLE = "google";
-
-    public static final String SNS_TYPE_VODAFONE = "vodafone";
-
-    private static final String SNS_TYPE_NOWPLUS = "nowplus";
-
-    private static final String SNS_TYPE_ZYB = "zyb";
-
-    public static final String SNS_TYPE_TWITTER = "twitter";
-
-    public static final String SNS_TYPE_HYVES = "hyves";
-    
-    public static final String SNS_TYPE_STUDIVZ = "studivz";
-
-    public static final String SNS_TYPE_PICASA = "picasa"; // Typically "picasa.com"
-
-    public static final String SNS_TYPE_FLICKR = "flickr";  // Typically "flickr.com"
-
 
     /**
      * Create a new third party account object.
@@ -107,17 +72,6 @@ public class ThirdPartyAccount {
         return sb.toString();
     }
 
-    /*
-     * Checks if the sns string contains text to identify it as Windows live sns
-     * @param sns - the text to check
-     * @return true if this is a Windows Live sns
-     */
-    public static boolean isWindowsLive(String sns) {
-        String snsLower = sns.toLowerCase();
-        return (snsLower.contains(SNS_TYPE_MSN) || snsLower.contains(SNS_TYPE_LIVE)
-                || snsLower.contains(SNS_TYPE_MICROSOFT) || snsLower.contains(SNS_TYPE_WINDOWS));
-    }
-
     /**
      * Gets the Localised string for the given SNS.
      * 
@@ -125,28 +79,32 @@ public class ThirdPartyAccount {
      * @return Localised string for the given SNS.
      */
     public static String getSnsString(Context context, String sns) {
-        if (sns == null) {
+        SocialNetwork socialNetwork = SocialNetwork.getNetworkBasedOnString(sns);
+        if (socialNetwork == null) {
             return context.getString(R.string.Utils_sns_name_vodafone);
-        } else if (sns.contains(SNS_TYPE_FACEBOOK)) {
-            return context.getString(R.string.Utils_sns_name_facebook);
-        } else if (sns.contains(SNS_TYPE_ODNOKLASSNIKI)) {
-            return context.getString(R.string.Utils_sns_name_odnoklassniki);
-        } else if (sns.contains(SNS_TYPE_VKONTAKTE)) {
-            return context.getString(R.string.Utils_sns_name_vkontakte);
-        } else if (sns.contains(SNS_TYPE_GOOGLE)) {
-            return context.getString(R.string.Utils_sns_name_google);
-        } else if (isWindowsLive(sns)) {
-            return context.getString(R.string.Utils_sns_name_msn);
-        } else if (sns.contains(SNS_TYPE_TWITTER)) {
-            return context.getString(R.string.Utils_sns_name_twitter);
-        } else if (sns.startsWith(SNS_TYPE_HYVES)) {
-            return context.getString(R.string.Utils_sns_name_hyves);
-        } else if (sns.startsWith(SNS_TYPE_STUDIVZ)) {
-            return context.getString(R.string.Utils_sns_name_studivz);
-        } else {
-            LogUtils.logE("SNSIconUtils.getSNSStringResId() SNS String[" + sns + "] is not of a "
-                    + "known type, so returning empty string value");
-            return "";
+        }
+
+        switch (socialNetwork) {
+            case FACEBOOK_COM:
+                return context.getString(R.string.Utils_sns_name_facebook);
+            case ODNOKLASSNIKI_RU:
+                return context.getString(R.string.Utils_sns_name_odnoklassniki);
+            case VKONTAKTE_RU:
+                return context.getString(R.string.Utils_sns_name_vkontakte);
+            case GOOGLE:
+                return context.getString(R.string.Utils_sns_name_google);
+            case WINDOWS:
+                return context.getString(R.string.Utils_sns_name_msn);
+            case TWITTER:
+                return context.getString(R.string.Utils_sns_name_twitter);
+            case HYVES_NL:
+                return context.getString(R.string.Utils_sns_name_hyves);
+            case STUDIVZ:
+                return context.getString(R.string.Utils_sns_name_studivz);
+            default:
+                LogUtils.logE("SNSIconUtils.getSNSStringResId() SNS String[" + sns + "] is not of a "
+                        + "known type, so returning empty string value");
+                return "";
         }
     }
 
@@ -218,16 +176,5 @@ public class ThirdPartyAccount {
      */
     public String getIdentityID() {
         return mIdentityID;
-    }
-
-    /**
-     * Checks if the sns string contains text to identify it as Vodafone sns
-     * @param sns - the text to check
-     * @return true if this is a Vodafone sns
-     */	 	
-    public static boolean isVodafone(String sns) {
-    	String snsLower = sns.toLowerCase();
-    	return (snsLower.contains(SNS_TYPE_VODAFONE) || snsLower.contains(SNS_TYPE_NOWPLUS) || 
-    			snsLower.contains(SNS_TYPE_ZYB));
     }
 }

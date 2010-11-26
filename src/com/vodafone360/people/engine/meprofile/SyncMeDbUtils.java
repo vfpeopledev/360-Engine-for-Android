@@ -33,15 +33,16 @@ import android.graphics.BitmapFactory;
 
 import com.vodafone360.people.database.DatabaseHelper;
 import com.vodafone360.people.database.tables.ContactChangeLogTable;
-import com.vodafone360.people.database.tables.ContactsTable;
-import com.vodafone360.people.database.tables.StateTable;
 import com.vodafone360.people.database.tables.ContactChangeLogTable.ContactChangeInfo;
 import com.vodafone360.people.database.tables.ContactChangeLogTable.ContactChangeType;
+import com.vodafone360.people.database.tables.ContactsTable;
+import com.vodafone360.people.database.tables.StateTable;
 import com.vodafone360.people.datatypes.Contact;
 import com.vodafone360.people.datatypes.ContactChanges;
 import com.vodafone360.people.datatypes.ContactDetail;
-import com.vodafone360.people.datatypes.UserProfile;
 import com.vodafone360.people.datatypes.ContactDetail.DetailKeys;
+import com.vodafone360.people.datatypes.UserProfile;
+import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.engine.presence.PresenceDbUtils;
 import com.vodafone360.people.service.ServiceStatus;
 import com.vodafone360.people.utils.LogUtils;
@@ -342,7 +343,7 @@ public class SyncMeDbUtils {
                     detail.value = statusText;
                     // Currently it's only possible to post a status on
                     // Vodafone sns
-                    detail.alt = ThirdPartyAccount.SNS_TYPE_VODAFONE;
+                    detail.alt = SocialNetwork.VODAFONE.toString();
                     if (ServiceStatus.SUCCESS == dbHelper.modifyContactDetail(detail)) {
                         return detail;
                     }
@@ -351,7 +352,7 @@ public class SyncMeDbUtils {
             // create a new detail instead
             ContactDetail contactDetail = new ContactDetail();
             contactDetail.setValue(statusText, ContactDetail.DetailKeys.PRESENCE_TEXT, null);
-            contactDetail.alt = ThirdPartyAccount.SNS_TYPE_VODAFONE;
+            contactDetail.alt = SocialNetwork.VODAFONE.toString();
             contactDetail.localContactID = meContact.localContactID;
             if (ServiceStatus.SUCCESS == dbHelper.addContactDetail(contactDetail)) {
                 return contactDetail;
