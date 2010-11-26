@@ -284,6 +284,54 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
 	}
     
     /**
+     * Retrieves a list of My Identities that possess the provided capability
+     * @param capabilityFilter The capability to filter identities 
+     * @return The identities possessing the provided capability
+     */
+    public ArrayList<Identity> getMyIdentitiesForCapability(IdentityCapability.CapabilityID capabilityFilter) {
+       if(capabilityFilter == null) {
+           // Invalid capability
+           LogUtils.logW("IdentityEngine.getMyIdentitiesForCapability() " +
+           		"Invalid null capabilityFilter, returning null");
+           return null;
+       }
+       
+       final ArrayList<Identity> identitiesForCapability = new ArrayList<Identity>();
+       final ArrayList<Identity> myIdentityList;
+       
+       synchronized(mMyIdentityList) {
+           // make a shallow copy
+           myIdentityList = new ArrayList<Identity>(mMyIdentityList);
+       }
+              
+       // checking each identity for the appropriate capability and adding it to the
+       // list if it does
+       for (Identity identity : myIdentityList) {
+           List<IdentityCapability> capabilities = identity.mCapabilities;
+           
+           if (null == capabilities) {
+               continue;   // if the capabilities are null skip to next identity
+           }
+           
+           // run through capabilities and check for capability
+           for (IdentityCapability capability : identity.mCapabilities) {
+               
+               if (null == capability) {
+                   continue;   // skip null capabilities
+               }
+               
+               if ((capability.mCapability == capabilityFilter) &&
+                       (capability.mValue) && !identity.isIdentityFieldBlankorNull()) {
+                   identitiesForCapability.add(identity);
+                   break;
+               }
+           }
+       }
+       
+       return identitiesForCapability;
+    }
+    
+    /**
      * 
      * Gets the identity with the specified network name.
      * 
@@ -318,44 +366,7 @@ public class IdentityEngine extends BaseEngine implements ITcpConnectionListener
      * 
      */
     public ArrayList<Identity> getMyChattableIdentities() {
-    	final ArrayList<Identity> chattableIdentities = new ArrayList<Identity>();
-    	final ArrayList<Identity> myIdentityList;
-    	final int identityListSize;
-        
-        synchronized(mMyIdentityList) {
-            // make a shallow copy
-            myIdentityList = new ArrayList<Identity>(mMyIdentityList);
-        }
-    	
-    	identityListSize = myIdentityList.size(); 
-    	
-    	// checking each identity for its chat capability and adding it to the
-    	// list if it does
-    	for (int i = 0; i < identityListSize; i++) {
-    		Identity identity = myIdentityList.get(i);
-    		List<IdentityCapability> capabilities = identity.mCapabilities;
-    		
-    		if (null == capabilities) {
-    			continue;	// if the capabilties are null skip to next identity
-    		}
-    		
-    		// run through capabilties and check for chat
-    		for (int j = 0; j < capabilities.size(); j++) {
-    			IdentityCapability capability = capabilities.get(j);
-    			
-    			if (null == capability) {
-    				continue;	// skip null capabilities
-    			}
-    			
-    			if ((capability.mCapability == IdentityCapability.CapabilityID.chat) &&
-    					(capability.mValue)) {
-    				chattableIdentities.add(identity);
-    				break;
-    			}
-    		}
-    	}
-    	
-    	return chattableIdentities;
+        return getMyIdentitiesForCapability(IdentityCapability.CapabilityID.chat);
     }
     
     

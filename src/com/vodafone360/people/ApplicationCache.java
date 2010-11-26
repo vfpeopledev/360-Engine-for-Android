@@ -532,34 +532,6 @@ public class ApplicationCache {
                 defaultValue);
     }
 
-    /***
-     * Return the resource ID for the SNS Subscribed warning (e.g.
-     * facebook/hyves/etc posting), or -1 if no warning is necessary.
-     * 
-     * @param context Android context.
-     * @return Resource ID for textView or -1 is warning is not required.
-     * @throws InvalidParameterException when context is NULL.
-     */
-    public static int getSnsSubscribedWarningId(Context context) {
-        if (context == null) {
-            throw new InvalidParameterException("ApplicationCache.getSnsSubscribedWarningId() "
-                    + "context cannot be NULL");
-        }
-
-        boolean facebook = EngineManager.getInstance().getIdentityEngine().isFacebookInThirdPartyAccountList();
-        boolean hyves =EngineManager.getInstance().getIdentityEngine().isHyvesInThirdPartyAccountList();
-
-        if (facebook && hyves) {
-            return R.string.ContactStatusListActivity_update_status_on_hyves_and_facebook;
-        } else if (facebook) {
-            return R.string.ContactStatusListActivity_update_status_on_facebook;
-        } else if (hyves) {
-            return R.string.ContactStatusListActivity_update_status_on_hyves;
-        } else {
-            return -1;
-        }
-    }
-
     public static boolean isBooleanValue(Context context, String key) {
         return TRUE.equals(getValue(context, key, FALSE));
     }
