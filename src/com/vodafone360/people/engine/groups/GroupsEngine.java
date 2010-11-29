@@ -246,7 +246,11 @@ public class GroupsEngine extends BaseEngine {
             if (index != -1) {
                 // group existing in the database
                 final GroupItem receivedGroup = mReceivedGroups.get(index);
-                if (!receivedGroup.isSameAs(groupItem)) {
+                // Note: The system groups have a localized name field which might be different 
+                //       to the group name stored in the db. We need to sort them out manually.
+                //       So we exclude all receivedGroup.mLocalGroupId != null since they are
+                //       useless anyway.
+                if (!receivedGroup.isSameAs(groupItem) && receivedGroup.mLocalGroupId != null) {
                     // this group has been modified
                     groupsToModifiy.add(receivedGroup);
                 }
