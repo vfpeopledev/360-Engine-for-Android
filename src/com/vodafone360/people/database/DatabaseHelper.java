@@ -411,14 +411,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             return ServiceStatus.ERROR_NOT_FOUND;
         }
 
-        ContactsTable.ContactIdInfo contactIdInfo = ContactsTable.validateContactId(
-                localContactID, getWritableDatabase());
-        List<ContactsTable.ContactIdInfo> idList = new ArrayList<ContactsTable.ContactIdInfo>();
-        idList.add(contactIdInfo);
-        ServiceStatus status = syncDeleteContactList(idList, true, true);
-        if (ServiceStatus.SUCCESS == status) {
-            fireDatabaseChangedEvent(DatabaseChangeType.CONTACTS, false);
-        }
+		ServiceStatus status = ServiceStatus.SUCCESS;
+		ContactsTable.ContactIdInfo contactIdInfo = ContactsTable.validateContactId(localContactID,
+				getWritableDatabase());
+		// In a extremely rare edge case it is possible that contactIdInfo returns null
+		// (when the contact has already been deleted but the UI has not been updated).
+		// We have to prevent a database update.
+		if (contactIdInfo != null) {
+			List<ContactsTable.ContactIdInfo> idList = new ArrayList<ContactsTable.ContactIdInfo>();
+			idList.add(contactIdInfo);
+			status = syncDeleteContactList(idList, true, true);
+			if (ServiceStatus.SUCCESS == status) {
+				fireDatabaseChangedEvent(DatabaseChangeType.CONTACTS, false);
+			}
+		}
         return status;
     }
 
