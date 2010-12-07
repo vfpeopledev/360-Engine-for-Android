@@ -28,7 +28,6 @@ package com.vodafone360.people;
 import java.lang.ref.SoftReference;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -353,7 +352,6 @@ public class ApplicationCache {
      */
     public void clearCachedData(Context context) {
         LoginPreferences.clearPreferencesFile(context);
-        LoginPreferences.clearCachedLoginDetails();
 
         setBooleanValue(context, JUST_LOGGED_IN, true);
         setBooleanValue(context, ADD_ACCOUNT_CLICKED, false);

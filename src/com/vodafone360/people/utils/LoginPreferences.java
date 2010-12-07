@@ -33,12 +33,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.vodafone360.people.ApplicationCache;
-import com.vodafone360.people.datatypes.LoginDetails;
-import com.vodafone360.people.utils.LogUtils;
 
 /***
- * Store various preferences used during login in a preferences file. TODO:
- * Requires some refactoring to clear up underutilised variables.
+ * Store various preferences used during login in a preferences file. 
  */
 public class LoginPreferences {
 
@@ -86,9 +83,6 @@ public class LoginPreferences {
     private static String sPassword = "";
 
     private static String sUsername = "";
-
-    // TODO: Why are we storing this information twice?
-    private static LoginDetails sLoginDetails = new LoginDetails();
 
     /**
      * Retrieves the name of the current login activity. Also retrieves login
@@ -158,49 +152,6 @@ public class LoginPreferences {
             throw new NullPointerException("MainApplication.setCurrentLoginActivity() Failed to"
                     + " set current login activity");
         }
-    }
-
-    /**
-     * Clear cached login details.
-     */
-    public static void clearCachedLoginDetails() {
-        // Clear sign up settings.
-        sSignupEmailAddress = "";
-        sSignupFirstName = "";
-        sSignupLastName = "";
-        sDateOfBirth = null;
-
-        // Clear login settings.
-        sMobileNumber = "";
-        sUsername = "";
-        sPassword = "";
-
-        sLoginDetails = new LoginDetails();
-    }
-
-    /**
-     * Store current login details.
-     * 
-     * @param loginDetails Current login details.
-     */
-    public static void setLoginDetails(LoginDetails loginDetails) {
-        sLoginDetails = loginDetails;
-    }
-
-    /**
-     * Re-initialise login details currently held in application cache.
-     */
-    public static void initLoginDetails() {
-        sLoginDetails = new LoginDetails();
-    }
-
-    /**
-     * Gets the current set of login parameters.
-     * 
-     * @return current login details.
-     */
-    public static LoginDetails getLoginDetails() {
-        return sLoginDetails;
     }
 
     /**
