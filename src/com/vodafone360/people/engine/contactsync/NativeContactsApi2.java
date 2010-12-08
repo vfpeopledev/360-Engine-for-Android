@@ -223,6 +223,11 @@ public class NativeContactsApi2 extends NativeContactsApi {
     private BatchOperation mBatch = new BatchOperation();
 
     /**
+     * A new field to store last Fetch NabContactID for pand-2637 use to access only one Website.
+     */
+    private static long lastFetchNabContactId = 0;
+
+    /**
      * Inner class for applying batches. TODO: Move to own class if batches
      * become supported in other areas
      */
@@ -1206,23 +1211,30 @@ public class NativeContactsApi2 extends NativeContactsApi {
      * @param nabContactId ID of the NAB Contact
      */
     private void readWebsite(Cursor cursor, List<ContactChange> ccList, long nabContactId) {
-        final String url = CursorUtils.getString(cursor, Website.URL);
-        if (!TextUtils.isEmpty(url)) {
-            final long nabDetailId = CursorUtils.getLong(cursor, Website._ID);
-            final int type = CursorUtils.getInt(cursor, Website.TYPE);
-            int flags = mapFromNabWebsiteType(type);
 
-            final boolean isPrimary = CursorUtils.getInt(cursor, Website.IS_PRIMARY) != 0;
+		if (lastFetchNabContactId != nabContactId) {
+			lastFetchNabContactId = nabContactId;
+			final String url = CursorUtils.getString(cursor, Website.URL);
+			if (!TextUtils.isEmpty(url)) {
+				final long nabDetailId = CursorUtils.getLong(cursor,
+						Website._ID);
+				final int type = CursorUtils.getInt(cursor, Website.TYPE);
+				int flags = mapFromNabWebsiteType(type);
 
-            if (isPrimary) {
-                flags |= ContactChange.FLAG_PREFERRED;
-            }
+				final boolean isPrimary = CursorUtils.getInt(cursor,
+						Website.IS_PRIMARY) != 0;
 
-            final ContactChange cc = new ContactChange(ContactChange.KEY_VCARD_URL, url, flags);
-            cc.setNabContactId(nabContactId);
-            cc.setNabDetailId(nabDetailId);
-            ccList.add(cc);
-        }
+				if (isPrimary) {
+					flags |= ContactChange.FLAG_PREFERRED;
+				}
+
+				final ContactChange cc = new ContactChange(
+						ContactChange.KEY_VCARD_URL, url, flags);
+				cc.setNabContactId(nabContactId);
+				cc.setNabDetailId(nabDetailId);
+				ccList.add(cc);
+			}
+		}
     }
 
     /**
