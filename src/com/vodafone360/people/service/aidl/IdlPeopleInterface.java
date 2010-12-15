@@ -32,7 +32,6 @@ import java.util.Map;
 
 import android.app.Service;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.DeadObjectException;
 import android.os.Handler;
@@ -44,16 +43,16 @@ import com.vodafone360.people.MainApplication;
 import com.vodafone360.people.Settings;
 import com.vodafone360.people.SettingsManager;
 import com.vodafone360.people.datatypes.ContactSummary;
+import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
 import com.vodafone360.people.datatypes.Identity;
 import com.vodafone360.people.datatypes.LoginDetails;
 import com.vodafone360.people.datatypes.RegistrationDetails;
-import com.vodafone360.people.datatypes.ContactSummary.OnlineStatus;
+import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.engine.presence.PresenceDbUtils;
 import com.vodafone360.people.engine.presence.User;
-import com.vodafone360.people.engine.presence.NetworkPresence.SocialNetwork;
 import com.vodafone360.people.service.PersistSettings;
-import com.vodafone360.people.service.RemoteService;
 import com.vodafone360.people.service.PersistSettings.InternetAvail;
+import com.vodafone360.people.service.RemoteService;
 import com.vodafone360.people.service.agent.NetworkAgentState;
 import com.vodafone360.people.service.interfaces.IPeopleService;
 import com.vodafone360.people.utils.LogUtils;
@@ -79,10 +78,6 @@ public class IdlPeopleInterface extends Service {
      * list otherwise.
      **/
     private Map<String, IDatabaseSubscriber> mListeners;
-    /**
-     * Need a direct handle on the database for certain lookup functions.
-     */
-    private SQLiteDatabase mDatabase;
 
     @Override
     public final void onCreate() {
@@ -135,7 +130,6 @@ public class IdlPeopleInterface extends Service {
             return;
         }
         mPeopleService = mApplication.getServiceInterface();
-        mDatabase = mApplication.getDatabase().getReadableDatabase();
         onStartListenerActivity();
     }
 

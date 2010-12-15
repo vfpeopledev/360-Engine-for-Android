@@ -29,9 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
-import com.vodafone360.people.service.transport.http.HttpConnectionThread;
 import android.text.TextUtils;
-
 import android.text.format.Time;
 import android.util.TimeFormatException;
 
